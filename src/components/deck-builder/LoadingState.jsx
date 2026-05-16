@@ -3,11 +3,11 @@ import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
 const tips = [
-  "Analyzing card art and text...",
-  "Identifying mana costs...",
-  "Evaluating card synergies...",
-  "Building your perfect deck...",
-  "Optimizing mana curve...",
+  "Scanning cards from screenshot...",
+  "Identifying card names & types...",
+  "Matching meta archetypes...",
+  "Finding synergy combos...",
+  "Crafting your optimal deck...",
 ];
 
 export default function LoadingState({ step }) {
