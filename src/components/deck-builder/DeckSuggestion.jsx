@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Crown, Copy, ChevronDown, ChevronUp, Swords, Shield, Zap, TreePine } from "lucide-react";
+import { Crown, Copy, ChevronDown, ChevronUp, Swords, Shield, Zap, TreePine, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import ManaCurveChart from "./ManaCurveChart";
 
 const typeIcons = {
   Creature: Swords,
@@ -16,7 +17,7 @@ const typeIcons = {
   Land: TreePine,
 };
 
-function DeckSection({ title, cards, icon: Icon }) {
+function DeckSection({ title, cards, icon: Icon, onAdjust }) {
   if (!cards || cards.length === 0) return null;
   const totalCards = cards.reduce((sum, c) => sum + (c.quantity || 1), 0);
 
@@ -33,12 +34,26 @@ function DeckSection({ title, cards, icon: Icon }) {
         {cards.map((card, i) => (
           <div
             key={i}
-            className="flex items-center justify-between px-3 py-1.5 rounded-md bg-secondary/30 hover:bg-secondary/50 transition-colors"
+            className="flex items-center justify-between px-3 py-1.5 rounded-md bg-secondary/30 hover:bg-secondary/50 transition-colors group"
           >
-            <span className="font-body text-sm text-foreground">{card.name}</span>
-            <span className="font-body text-xs text-muted-foreground font-medium">
-              x{card.quantity || 1}
-            </span>
+            <span className="font-body text-sm text-foreground truncate mr-2">{card.name}</span>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                onClick={() => onAdjust(card.name, -1)}
+                className="w-5 h-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100"
+              >
+                <Minus className="w-3 h-3" />
+              </button>
+              <span className="font-body text-xs text-muted-foreground font-medium w-6 text-center">
+                x{card.quantity || 1}
+              </span>
+              <button
+                onClick={() => onAdjust(card.name, +1)}
+                className="w-5 h-5 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100"
+              >
+                <Plus className="w-3 h-3" />
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -48,22 +63,39 @@ function DeckSection({ title, cards, icon: Icon }) {
 
 export default function DeckSuggestion({ deck }) {
   const [showStrategy, setShowStrategy] = useState(false);
+  const [quantities, setQuantities] = useState({});
 
   if (!deck) return null;
 
+  const adjustQuantity = (cardName, delta) => {
+    setQuantities((prev) => {
+      const currentCard = deck.cards.find((c) => c.name === cardName);
+      const base = currentCard?.quantity || 1;
+      const current = prev[cardName] ?? base;
+      const next = Math.max(0, Math.min(4, current + delta));
+      return { ...prev, [cardName]: next };
+    });
+  };
+
+  // Merge AI quantities with user overrides
+  const resolvedCards = (deck.cards || [])
+    .map((c) => ({
+      ...c,
+      quantity: quantities[c.name] ?? c.quantity ?? 1,
+    }))
+    .filter((c) => c.quantity > 0);
+
   const groupedCards = {};
-  (deck.cards || []).forEach((card) => {
+  resolvedCards.forEach((card) => {
     const type = card.type || "Other";
     if (!groupedCards[type]) groupedCards[type] = [];
     groupedCards[type].push(card);
   });
 
-  const totalCards = (deck.cards || []).reduce((sum, c) => sum + (c.quantity || 1), 0);
+  const totalCards = resolvedCards.reduce((sum, c) => sum + (c.quantity || 1), 0);
 
   const copyDeckList = () => {
-    const list = (deck.cards || [])
-      .map((c) => `${c.quantity || 1} ${c.name}`)
-      .join("\n");
+    const list = resolvedCards.map((c) => `${c.quantity} ${c.name}`).join("\n");
     navigator.clipboard.writeText(list);
     toast.success("Deck list copied to clipboard!");
   };
@@ -107,16 +139,25 @@ export default function DeckSuggestion({ deck }) {
         </div>
       )}
 
-      {/* Cards by type */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-card rounded-xl p-6 border border-border">
-        {Object.entries(groupedCards).map(([type, cards]) => (
-          <DeckSection
-            key={type}
-            title={type}
-            cards={cards}
-            icon={typeIcons[type] || Swords}
-          />
-        ))}
+      {/* Mana Curve Chart */}
+      <ManaCurveChart cards={resolvedCards} />
+
+      {/* Cards by type with adjusters */}
+      <div className="bg-card rounded-xl border border-border p-5 space-y-1">
+        <p className="text-xs text-muted-foreground font-body mb-3">
+          Hover a card to adjust its quantity — the mana curve updates live.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {Object.entries(groupedCards).map(([type, cards]) => (
+            <DeckSection
+              key={type}
+              title={type}
+              cards={cards}
+              icon={typeIcons[type] || Swords}
+              onAdjust={adjustQuantity}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Strategy */}
