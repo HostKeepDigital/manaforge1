@@ -102,15 +102,21 @@ export default function DraftAssistant() {
 
       const result = await base44.integrations.Core.InvokeLLM({
         model: "claude_sonnet_4_6",
-        prompt: `You are an expert MTG Arena draft coach.
+        prompt: `You are an expert MTG Arena draft coach specializing in reading MTG Arena screenshots.
 
-Analyze this draft pack screenshot. Rate EVERY visible card for limited play.
+MTG Arena shows draft packs and deck lists in many formats — full card art packs, compact list rows, stacked column deck views, etc. Read ALL visible card names regardless of format.
+
+CRITICAL: Read every text label in the image. Card names appear as:
+- Large card art with name at top/bottom
+- Small text rows in list/sidebar panels (e.g. "Flashback", "Mana Sculpt")
+- Stacked column views in Draft Deck screens
+- ANY readable card name text counts — you do NOT need full art to be visible
 
 ${poolContext}
 
 IMPORTANT: When a pool exists, synergy with already-picked cards should heavily influence grades. A mediocre card that completes a combo should rank higher than a powerful card in the wrong color.
 
-For each card:
+For EVERY card you can identify in the image:
 - name: exact card name
 - card_type: Creature / Instant / Sorcery / Enchantment / Artifact / Land
 - grade: A+, A, A-, B+, B, B-, C, D, or F

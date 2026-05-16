@@ -54,16 +54,28 @@ export default function Home() {
     setLoadingStep(1);
     const cardResult = await base44.integrations.Core.InvokeLLM({
       model: "claude_sonnet_4_6",
-      prompt: `You are an expert MTG (Magic: The Gathering) card identifier. 
-Analyze this screenshot from MTG Arena and identify ALL visible Magic: The Gathering cards.
-For each card, provide:
-- The exact card name as printed on the card
-- The card colors (W=White, U=Blue, B=Black, R=Red, G=Green, C=Colorless) — can be multiple
-- The card type (Creature, Instant, Sorcery, Enchantment, Artifact, Planeswalker, Land)
-- The quantity visible (default 1 if unclear)
-- The mana cost as a string (e.g. "2WW")
+      prompt: `You are an expert MTG (Magic: The Gathering) card identifier specializing in reading MTG Arena screenshots.
 
-Be as thorough as possible. List every card you can identify from the image.`,
+MTG Arena displays cards in MANY formats — full card art, compact list rows with small card names in sidebars, draft deck views with stacked columns, collection grids, etc. You MUST read ALL of them.
+
+CRITICAL INSTRUCTIONS:
+- Read every piece of text in the image carefully, including small card name labels in list/sidebar views
+- MTG Arena draft/deck screens show cards as TEXT ROWS in columns (e.g. "Flashback", "Mana Sculpt", "Zombify") — read ALL of these
+- Look for card names in ALL columns and ALL rows, even if the text is small
+- Quantities may appear as "x2", "x3", "x4" badges next to card names — capture those
+- Do NOT require full card art to be visible — text list rows count as valid cards
+- Common MTG Arena UI elements to read: Draft Deck panel, collection sidebar, card lists, booster pack views
+- If you see a "Draft Deck" panel with card names listed, read EVERY card name from it
+- Ignore UI chrome (buttons, mana symbols in headers, "Done" buttons) but read ALL card names
+
+For each card found:
+- name: exact card name as shown
+- colors: array of W/U/B/R/G/C based on your MTG knowledge of the card
+- type: Creature/Instant/Sorcery/Enchantment/Artifact/Planeswalker/Land
+- quantity: number shown (x2, x3, x4) or 1 if not specified
+- mana_cost: from your MTG knowledge (e.g. "2WW")
+
+Be exhaustive — identify every single card visible in any form in the image.`,
       file_urls: [file_url],
       response_json_schema: {
         type: "object",
