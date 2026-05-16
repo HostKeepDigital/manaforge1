@@ -1,0 +1,98 @@
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Sparkles, Library, BarChart2, Swords, TrendingUp, BookOpen, Menu, X, Trophy
+} from "lucide-react";
+
+const NAV = [
+  { path: "/", label: "Deck Builder", icon: Sparkles },
+  { path: "/collection", label: "Collection", icon: Library },
+  { path: "/draft", label: "Draft Assistant", icon: BookOpen },
+  { path: "/meta", label: "Meta Tier List", icon: TrendingUp },
+  { path: "/matchups", label: "Matchup Analyzer", icon: Swords },
+  { path: "/stats", label: "My Stats", icon: BarChart2 },
+];
+
+export default function AppLayout() {
+  const { pathname } = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar — desktop */}
+      <aside className="hidden lg:flex flex-col w-56 shrink-0 border-r border-border bg-sidebar sticky top-0 h-screen overflow-y-auto">
+        <div className="px-5 py-6 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-primary" />
+            <span className="font-heading text-lg text-foreground">ArenaCraft</span>
+          </div>
+        </div>
+        <nav className="flex-1 py-4 px-3 space-y-1">
+          {NAV.map(({ path, label, icon: Icon }) => (
+            <Link
+              key={path}
+              to={path}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-body transition-all
+                ${pathname === path
+                  ? "bg-primary/15 text-primary font-semibold"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                }`}
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              {label}
+            </Link>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Mobile top bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-sidebar border-b border-border px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Trophy className="w-5 h-5 text-primary" />
+          <span className="font-heading text-lg text-foreground">ArenaCraft</span>
+        </div>
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="text-muted-foreground hover:text-foreground">
+          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+      </div>
+
+      {/* Mobile drawer */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "tween", duration: 0.22 }}
+            className="lg:hidden fixed inset-0 z-40 bg-background/95 pt-16 px-4"
+          >
+            <nav className="space-y-1 py-4">
+              {NAV.map(({ path, label, icon: Icon }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-body transition-all
+                    ${pathname === path
+                      ? "bg-primary/15 text-primary font-semibold"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                    }`}
+                >
+                  <Icon className="w-5 h-5 shrink-0" />
+                  {label}
+                </Link>
+              ))}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Page content */}
+      <main className="flex-1 min-w-0 pt-14 lg:pt-0 overflow-x-hidden">
+        <Outlet />
+      </main>
+    </div>
+  );
+}

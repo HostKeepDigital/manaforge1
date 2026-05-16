@@ -1,0 +1,36 @@
+{
+  "name": "GameSession",
+  "type": "object",
+  "properties": {
+    "deck_name": {
+      "type": "string"
+    },
+    "archetype": {
+      "type": "string"
+    },
+    "result": {
+      "type": "string",
+      "enum": [
+        "win",
+        "loss",
+        "draw"
+      ]
+    },
+    "opponent_archetype": {
+      "type": "string"
+    },
+    "rank": {
+      "type": "string"
+    },
+    "turns": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "played_at": {
+      "type": "string"
+    }
+  },
+  "required": []
+}

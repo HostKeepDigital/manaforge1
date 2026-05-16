@@ -1,0 +1,22 @@
+{
+  "name": "Collection",
+  "type": "object",
+  "properties": {
+    "screenshot_url": {
+      "type": "string"
+    },
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "uploaded_at": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    }
+  },
+  "required": []
+}
