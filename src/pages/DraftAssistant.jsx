@@ -3,87 +3,121 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Sparkles, RotateCcw, Star, ChevronDown, ChevronUp, Trophy } from "lucide-react";
-import ImageUploader from "../components/deck-builder/ImageUploader";
-import LoadingState from "../components/deck-builder/LoadingState";
+import { Sparkles, RotateCcw, Trophy, ChevronDown, ChevronUp, Camera, X, Layers } from "lucide-react";
 
-const GRADE_COLORS = {
-  "A+": "text-yellow-400 border-yellow-400/40 bg-yellow-400/10",
-  A: "text-green-400 border-green-400/40 bg-green-400/10",
-  "A-": "text-green-400 border-green-400/40 bg-green-400/10",
-  "B+": "text-blue-400 border-blue-400/40 bg-blue-400/10",
-  B: "text-blue-400 border-blue-400/40 bg-blue-400/10",
-  "B-": "text-blue-400 border-blue-400/40 bg-blue-400/10",
-  C: "text-orange-400 border-orange-400/40 bg-orange-400/10",
-  D: "text-red-400 border-red-400/40 bg-red-400/10",
-  F: "text-red-500 border-red-500/40 bg-red-500/10",
+const GRADE_ORDER = ["A+", "A", "A-", "B+", "B", "B-", "C", "D", "F"];
+
+const GRADE_STYLE = {
+  "A+": "text-yellow-300 bg-yellow-400/20 border-yellow-400/40",
+  "A":  "text-green-300 bg-green-400/20 border-green-400/40",
+  "A-": "text-green-300 bg-green-400/20 border-green-400/40",
+  "B+": "text-blue-300 bg-blue-400/20 border-blue-400/40",
+  "B":  "text-blue-300 bg-blue-400/20 border-blue-400/40",
+  "B-": "text-blue-300 bg-blue-400/20 border-blue-400/40",
+  "C":  "text-orange-300 bg-orange-400/20 border-orange-400/40",
+  "D":  "text-red-400 bg-red-400/20 border-red-400/40",
+  "F":  "text-red-500 bg-red-500/20 border-red-500/40",
 };
 
-function CardRating({ card, index, isTopPick }) {
+function CardRow({ card, isBest, onPick }) {
   const [open, setOpen] = useState(false);
-  const gradeStyle = GRADE_COLORS[card.grade] || "text-muted-foreground border-border bg-secondary/30";
+  const style = GRADE_STYLE[card.grade] || "text-muted-foreground bg-secondary/30 border-border";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className={`rounded-xl border overflow-hidden ${isTopPick ? "border-primary/40 bg-primary/5" : "border-border bg-card"}`}
-    >
+    <div className={`rounded-xl border overflow-hidden transition-colors ${isBest ? "border-primary/50 bg-primary/5" : "border-border bg-card/60"}`}>
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-3 p-3 hover:bg-secondary/20 transition-colors text-left"
+        className="w-full flex items-center gap-2 px-3 py-3 text-left active:bg-secondary/30"
       >
-        {isTopPick && <Trophy className="w-4 h-4 text-primary shrink-0" />}
-        <span className={`text-xs font-heading font-bold px-2 py-1 rounded-md border shrink-0 ${gradeStyle}`}>
+        {isBest && <Trophy className="w-4 h-4 text-primary shrink-0" />}
+        <span className={`text-xs font-bold px-2 py-0.5 rounded border shrink-0 font-heading ${style}`}>
           {card.grade}
         </span>
-        <span className="font-body font-medium text-foreground text-sm flex-1 truncate">{card.name}</span>
-        <span className="text-xs text-muted-foreground font-body shrink-0 mr-1">{card.card_type}</span>
+        <span className="font-body text-sm text-foreground flex-1 truncate leading-tight">{card.name}</span>
+        <span className="text-xs text-muted-foreground font-body shrink-0 hidden sm:block">{card.card_type}</span>
         {open ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
       </button>
-      {open && (
-        <div className="px-4 pb-3 space-y-1.5 border-t border-border/50">
-          <p className="text-sm font-body text-foreground/80 mt-2">{card.reasoning}</p>
-          {card.synergy_note && (
-            <p className="text-xs font-body text-muted-foreground italic">🔗 {card.synergy_note}</p>
-          )}
-        </div>
-      )}
-    </motion.div>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="overflow-hidden"
+          >
+            <div className="px-3 pb-3 pt-1 border-t border-border/40 space-y-2">
+              <p className="text-sm font-body text-foreground/80">{card.reasoning}</p>
+              {card.synergy_note && (
+                <p className="text-xs font-body text-primary/80 italic">🔗 {card.synergy_note}</p>
+              )}
+              <Button
+                size="sm"
+                className="w-full font-body text-xs h-8 mt-1"
+                onClick={(e) => { e.stopPropagation(); onPick(card.name); }}
+              >
+                Pick {card.name}
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
 export default function DraftAssistant() {
   const [imageFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [ratings, setRatings] = useState(null);
   const [optimalDeck, setOptimalDeck] = useState(null);
   const [pickedCards, setPickedCards] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState("pack"); // "pack" | "pool"
+  const [mode, setMode] = useState("pack");
+  const [packNumber, setPackNumber] = useState(1);
+  const [showPool, setShowPool] = useState(false);
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    setRatings(null);
+    setOptimalDeck(null);
+  };
 
   const analyze = async () => {
     if (!imageFile) return;
     setLoading(true);
+    setRatings(null);
+    setOptimalDeck(null);
+
     const { file_url } = await base44.integrations.Core.UploadFile({ file: imageFile });
 
     if (mode === "pack") {
+      const poolContext = pickedCards.length > 0
+        ? `Current pool (${pickedCards.length} cards): ${pickedCards.join(", ")}`
+        : "No cards picked yet — rate on raw power.";
+
       const result = await base44.integrations.Core.InvokeLLM({
         model: "claude_sonnet_4_6",
-        prompt: `You are an expert MTG draft advisor like Draftsmith or Arena Tutor.
+        prompt: `You are an expert MTG Arena draft coach.
 
-Analyze this MTG Arena draft pack screenshot. Identify every card in the pack and rate each one.
+Analyze this draft pack screenshot. Rate EVERY visible card for limited play.
 
-Already picked cards (consider synergy): ${pickedCards.join(", ") || "none yet"}
+${poolContext}
 
-For each card in the pack provide:
-- Exact card name
-- Card type (Creature/Instant/Sorcery/etc)
-- Grade: A+, A, A-, B+, B, B-, C, D, or F
-- Reasoning: 1-2 sentences explaining the grade considering power level, format role, and synergy with already-picked cards
-- Synergy note: if it synergizes with already-picked cards, explain how (optional)
+IMPORTANT: When a pool exists, synergy with already-picked cards should heavily influence grades. A mediocre card that completes a combo should rank higher than a powerful card in the wrong color.
 
-Also identify the single best pick and explain why.`,
+For each card:
+- name: exact card name
+- card_type: Creature / Instant / Sorcery / Enchantment / Artifact / Land
+- grade: A+, A, A-, B+, B, B-, C, D, or F
+- reasoning: 1-2 sentences on power level + fit in pool
+- synergy_note: only if it directly synergizes with a card already in the pool
+
+Also pick the single best card to take given the current pool.`,
         file_urls: [file_url],
         response_json_schema: {
           type: "object",
@@ -108,12 +142,9 @@ Also identify the single best pick and explain why.`,
       });
       setRatings(result);
     } else {
-      // Pool → build deck
       const result = await base44.integrations.Core.InvokeLLM({
         model: "claude_sonnet_4_6",
-        prompt: `You are an expert MTG limited deck builder. Analyze this draft pool screenshot and build the optimal 40-card limited deck.
-
-Identify all cards, pick the best 22-23 non-land cards + 17-18 lands, and explain the deck strategy.`,
+        prompt: `You are an expert MTG limited deck builder. Analyze this draft pool screenshot and build the optimal 40-card deck. Pick 22-23 non-land cards and 17-18 lands. Provide a short strategy summary and list key cards.`,
         file_urls: [file_url],
         response_json_schema: {
           type: "object",
@@ -141,120 +172,199 @@ Identify all cards, pick the best 22-23 non-land cards + 17-18 lands, and explai
     setLoading(false);
   };
 
-  const addToPicked = (name) => {
+  const pickCard = (name) => {
     if (!pickedCards.includes(name)) {
-      setPickedCards([...pickedCards, name]);
+      setPickedCards(prev => [...prev, name]);
     }
+    // Clear current pack, ready for next upload
+    setImageFile(null);
+    setPreviewUrl(null);
+    setRatings(null);
+    setPackNumber(p => p + 1);
   };
 
-  const reset = () => {
+  const quickPick = () => {
+    if (ratings?.best_pick) pickCard(ratings.best_pick);
+  };
+
+  const resetDraft = () => {
     setImageFile(null);
+    setPreviewUrl(null);
     setRatings(null);
     setOptimalDeck(null);
+    setPickedCards([]);
+    setPackNumber(1);
     setLoading(false);
   };
 
+  const sortedCards = ratings?.pack_cards
+    ? [...ratings.pack_cards].sort((a, b) => GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade))
+    : [];
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 right-1/4 w-[500px] h-[400px] bg-primary/5 rounded-full blur-[100px]" />
-      </div>
-      <div className="relative max-w-3xl mx-auto px-4 py-10">
-        <div className="mb-8">
-          <h1 className="font-heading text-3xl text-foreground">Draft Assistant</h1>
-          <p className="font-body text-sm text-muted-foreground mt-1">
-            Upload a pack screenshot for AI card ratings, or your full pool to auto-build the optimal deck.
-          </p>
+      <div className="max-w-lg mx-auto px-3 pt-4 pb-24">
+
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="font-heading text-xl text-foreground">Draft Assistant</h1>
+            <p className="text-xs text-muted-foreground font-body">
+              {mode === "pack" ? `Pack ${packNumber} · ${pickedCards.length} cards in pool` : "Build from full pool"}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {pickedCards.length > 0 && (
+              <button
+                onClick={() => setShowPool(!showPool)}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-secondary/60 text-xs text-foreground font-body"
+              >
+                <Layers className="w-3.5 h-3.5" />
+                Pool ({pickedCards.length})
+              </button>
+            )}
+            {(pickedCards.length > 0 || ratings || imageFile) && (
+              <button onClick={resetDraft} className="text-xs text-muted-foreground font-body hover:text-foreground flex items-center gap-1">
+                <RotateCcw className="w-3 h-3" /> Reset
+              </button>
+            )}
+          </div>
         </div>
 
+        {/* Pool drawer */}
+        <AnimatePresence>
+          {showPool && pickedCards.length > 0 && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden mb-4"
+            >
+              <div className="bg-card rounded-xl border border-border p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-muted-foreground font-body uppercase tracking-wider">Current Pool</p>
+                  <button onClick={() => setShowPool(false)}><X className="w-3.5 h-3.5 text-muted-foreground" /></button>
+                </div>
+                <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
+                  {pickedCards.map((c, i) => (
+                    <Badge
+                      key={i}
+                      variant="secondary"
+                      className="font-body text-xs cursor-pointer hover:bg-destructive/20"
+                      onClick={() => setPickedCards(pickedCards.filter(p => p !== c))}
+                    >
+                      {c} ×
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Mode toggle */}
-        <div className="flex gap-1 bg-secondary/50 rounded-lg p-1 mb-6 w-fit">
-          {["pack", "pool"].map((m) => (
+        <div className="flex gap-1 bg-secondary/50 rounded-lg p-1 mb-4">
+          {[["pack", "Rate Pack"], ["pool", "Build Deck"]].map(([m, label]) => (
             <button
               key={m}
               onClick={() => { setMode(m); setRatings(null); setOptimalDeck(null); }}
-              className={`px-4 py-2 rounded-md text-sm font-body font-medium transition-all capitalize
-                ${mode === m ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+              className={`flex-1 py-2 rounded-md text-sm font-body font-medium transition-all
+                ${mode === m ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
             >
-              {m === "pack" ? "Rate Pack" : "Build from Pool"}
+              {label}
             </button>
           ))}
         </div>
 
-        {/* Picked cards bar */}
-        {mode === "pack" && pickedCards.length > 0 && (
-          <div className="mb-4 p-3 bg-card rounded-xl border border-border">
-            <p className="text-xs text-muted-foreground font-body mb-2">Already picked ({pickedCards.length}):</p>
-            <div className="flex flex-wrap gap-1.5">
-              {pickedCards.map((c, i) => (
-                <Badge
-                  key={i}
-                  variant="secondary"
-                  className="font-body text-xs cursor-pointer hover:bg-destructive/20"
-                  onClick={() => setPickedCards(pickedCards.filter(p => p !== c))}
-                >
-                  {c} ×
-                </Badge>
-              ))}
-            </div>
+        {/* Upload area — compact for mobile */}
+        {!previewUrl ? (
+          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-card/40 transition-all mb-4">
+            <input type="file" accept="image/*" capture="environment" onChange={handleFileSelect} className="hidden" />
+            <Camera className="w-7 h-7 text-primary/60 mb-2" />
+            <p className="text-sm font-body text-muted-foreground">
+              {mode === "pack" ? "Tap to photograph pack" : "Tap to photograph pool"}
+            </p>
+            <p className="text-xs text-muted-foreground/60 font-body mt-0.5">or upload screenshot</p>
+          </label>
+        ) : (
+          <div className="relative mb-4 rounded-xl overflow-hidden border border-border">
+            <img src={previewUrl} alt="Pack" className="w-full max-h-48 object-cover" />
+            {!loading && (
+              <button
+                onClick={() => { setImageFile(null); setPreviewUrl(null); setRatings(null); }}
+                className="absolute top-2 right-2 bg-black/60 rounded-full p-1"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
+            )}
+            {loading && (
+              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2">
+                <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <p className="text-xs text-primary font-body">Analyzing with your pool...</p>
+              </div>
+            )}
           </div>
         )}
 
-        <ImageUploader onImageSelected={setImageFile} isProcessing={loading} />
-
+        {/* Analyze button */}
         {imageFile && !loading && !ratings && !optimalDeck && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 flex justify-center">
-            <Button onClick={analyze} size="lg" className="gap-2 font-body px-8">
-              <Sparkles className="w-5 h-5" />
-              {mode === "pack" ? "Rate This Pack" : "Build Optimal Deck"}
-            </Button>
-          </motion.div>
+          <Button onClick={analyze} className="w-full gap-2 font-body mb-4" size="lg">
+            <Sparkles className="w-5 h-5" />
+            {mode === "pack" ? "Rate Pack" : "Build Deck"}
+          </Button>
         )}
 
-        {loading && <div className="mt-6"><LoadingState step={1} /></div>}
-
+        {/* RESULTS — Pack ratings */}
         <AnimatePresence>
           {ratings && (
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mt-6 space-y-4">
-              {/* Best pick callout */}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+
+              {/* Best pick — sticky CTA */}
               {ratings.best_pick && (
-                <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
-                  <p className="font-heading text-base text-primary">⭐ Best Pick: {ratings.best_pick}</p>
-                  <p className="font-body text-sm text-foreground/80 mt-1">{ratings.best_pick_reason}</p>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="mt-3 font-body text-xs"
-                    onClick={() => { addToPicked(ratings.best_pick); reset(); }}
-                  >
-                    Pick this card & analyze next pack
+                <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-primary shrink-0" />
+                    <p className="font-heading text-base text-primary">Best Pick: {ratings.best_pick}</p>
+                  </div>
+                  <p className="font-body text-xs text-foreground/70">{ratings.best_pick_reason}</p>
+                  <Button onClick={quickPick} className="w-full font-body text-sm h-9 gap-2">
+                    ✓ Pick & Next Pack
                   </Button>
                 </div>
               )}
+
+              {/* All cards */}
               <div className="space-y-2">
-                {(ratings.pack_cards || [])
-                  .sort((a, b) => ["A+","A","A-","B+","B","B-","C","D","F"].indexOf(a.grade) - ["A+","A","A-","B+","B","B-","C","D","F"].indexOf(b.grade))
-                  .map((card, i) => (
-                    <CardRating key={i} card={card} index={i} isTopPick={card.name === ratings.best_pick} />
-                  ))}
+                {sortedCards.map((card, i) => (
+                  <CardRow
+                    key={i}
+                    card={card}
+                    index={i}
+                    isBest={card.name === ratings.best_pick}
+                    onPick={pickCard}
+                  />
+                ))}
               </div>
-              <Button variant="outline" onClick={reset} className="w-full gap-2 font-body">
-                <RotateCcw className="w-4 h-4" /> Analyze New Pack
+
+              <Button variant="outline" onClick={() => { setImageFile(null); setPreviewUrl(null); setRatings(null); }} className="w-full font-body gap-2">
+                <Camera className="w-4 h-4" /> Upload Different Pack
               </Button>
             </motion.div>
           )}
+
+          {/* Deck result */}
           {optimalDeck && (
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mt-6 bg-card rounded-xl border border-border p-5 space-y-4">
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="bg-card rounded-xl border border-border p-4 space-y-3">
               <div>
-                <h3 className="font-heading text-xl text-foreground">{optimalDeck.deck_name}</h3>
-                <div className="flex gap-2 mt-1">
+                <h3 className="font-heading text-lg text-foreground">{optimalDeck.deck_name}</h3>
+                <div className="flex gap-1.5 mt-1 flex-wrap">
                   {(optimalDeck.colors || []).map((c, i) => <Badge key={i} variant="secondary" className="font-body text-xs">{c}</Badge>)}
                 </div>
               </div>
               <p className="font-body text-sm text-foreground/80">{optimalDeck.strategy}</p>
               {optimalDeck.key_cards?.length > 0 && (
                 <div>
-                  <p className="text-xs text-muted-foreground font-body uppercase tracking-wider mb-2">Key Cards</p>
+                  <p className="text-xs text-muted-foreground font-body uppercase tracking-wider mb-1.5">Key Cards</p>
                   <div className="flex flex-wrap gap-1.5">
                     {optimalDeck.key_cards.map((c, i) => <Badge key={i} variant="secondary" className="font-body text-xs">{c}</Badge>)}
                   </div>
@@ -264,12 +374,12 @@ Identify all cards, pick the best 22-23 non-land cards + 17-18 lands, and explai
                 {(optimalDeck.cards || []).map((c, i) => (
                   <div key={i} className="bg-secondary/40 rounded-md px-2.5 py-1.5 text-xs font-body flex justify-between">
                     <span className="text-foreground truncate">{c.name}</span>
-                    <span className="text-muted-foreground ml-2">x{c.quantity}</span>
+                    <span className="text-muted-foreground ml-1">×{c.quantity}</span>
                   </div>
                 ))}
               </div>
-              <Button variant="outline" onClick={reset} className="w-full gap-2 font-body">
-                <RotateCcw className="w-4 h-4" /> Start New Draft
+              <Button variant="outline" onClick={resetDraft} className="w-full gap-2 font-body">
+                <RotateCcw className="w-4 h-4" /> New Draft
               </Button>
             </motion.div>
           )}
