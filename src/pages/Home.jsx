@@ -143,7 +143,9 @@ Given the following cards identified from an MTG Arena collection screenshot, bu
 Available cards:
 ${cardListText}
 
-Build the strongest deck possible from ONLY these cards. You may include basic lands as needed.
+Build the strongest deck possible from ONLY these cards. You may include basic lands (Plains, Island, Swamp, Mountain, Forest) as needed.
+
+CRITICAL: The "cards" array MUST include the lands as entries with type "Land" and their quantities (e.g. {"name":"Plains","quantity":10,"type":"Land"}). Never return a deck with zero lands. A 60-card deck needs ~24 lands, a 40-card deck ~17.
 
 Provide:
 1. A creative deck name
@@ -301,9 +303,16 @@ Then give:
       }),
     ]);
 
-    setDeck(deckResult);
-    setAnalysis(analysisResult);
-    setWinRate(winRateResult);
+    // The LLM occasionally nests the structured output under a `response` key.
+    // Unwrap it so the deck, analysis, and win-rate render correctly.
+    const unwrap = (result) =>
+      result && result.response && typeof result.response === "object"
+        ? result.response
+        : result;
+
+    setDeck(unwrap(deckResult));
+    setAnalysis(unwrap(analysisResult));
+    setWinRate(unwrap(winRateResult));
     setLoading(false);
     stopLoadingAnimation();
   };
@@ -395,6 +404,14 @@ Then give:
                 <CardList cards={cards} />
                 <WinRatePotential winRate={winRate} />
                 <SynergyAnalysis analysis={analysis} />
+                <div className="space-y-2">
+                  <h2 className="font-heading text-2xl text-foreground">
+                    Here is your most optimal deck out of these cards
+                  </h2>
+                  <p className="font-body text-sm text-muted-foreground">
+                    Below: the recommended build, its land count, and an example of a good vs. a bad opening 7-card hand.
+                  </p>
+                </div>
                 <DeckSuggestion deck={deck} />
 
                 <div className="flex justify-center pt-4">
