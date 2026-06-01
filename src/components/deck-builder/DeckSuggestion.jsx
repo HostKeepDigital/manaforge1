@@ -6,6 +6,7 @@ import { Crown, Copy, ChevronDown, ChevronUp, Swords, Shield, Zap, TreePine, Plu
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import ManaCurveChart from "./ManaCurveChart";
+import ManaCalculator from "./ManaCalculator";
 import OpeningHands from "./OpeningHands";
 
 const typeIcons = {
@@ -142,6 +143,9 @@ export default function DeckSuggestion({ deck }) {
 
       {/* Mana Curve Chart */}
       <ManaCurveChart cards={resolvedCards} />
+
+      {/* Mana Calculator */}
+      <ManaCalculator cards={resolvedCards} />
 
       {/* Land count + opening hands */}
       <OpeningHands
