@@ -6,7 +6,7 @@ const tips = [
   "Scanning cards from screenshot...",
   "Identifying card names & types...",
   "Matching meta archetypes...",
-  "Finding synergy combos...",
+  "Calculating win rate potential...",
   "Crafting your optimal deck...",
 ];
 

@@ -7,6 +7,7 @@ import ImageUploader from "../components/deck-builder/ImageUploader";
 import CardList from "../components/deck-builder/CardList";
 import DeckSuggestion from "../components/deck-builder/DeckSuggestion";
 import SynergyAnalysis from "../components/deck-builder/SynergyAnalysis";
+import WinRatePotential from "../components/deck-builder/WinRatePotential";
 import LoadingState from "../components/deck-builder/LoadingState";
 
 export default function Home() {
@@ -14,6 +15,7 @@ export default function Home() {
   const [cards, setCards] = useState(null);
   const [deck, setDeck] = useState(null);
   const [analysis, setAnalysis] = useState(null);
+  const [winRate, setWinRate] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState(null);
@@ -38,6 +40,7 @@ export default function Home() {
     setCards(null);
     setDeck(null);
     setAnalysis(null);
+    setWinRate(null);
     setError(null);
   };
 
@@ -119,8 +122,8 @@ Be EXHAUSTIVE — a typical 40-card draft deck will have 20-25 non-land cards an
       .map((c) => `${c.quantity || 1}x ${c.name} (${c.type}, colors: ${c.colors?.join("") || "C"}, cost: ${c.mana_cost || "?"})`)
       .join("\n");
 
-    // Step 3: Run synergy analysis AND deck building in parallel
-    const [deckResult, analysisResult] = await Promise.all([
+    // Step 3: Run synergy analysis, deck building, AND win rate analysis in parallel
+    const [deckResult, analysisResult, winRateResult] = await Promise.all([
       base44.integrations.Core.InvokeLLM({
         model: "claude_sonnet_4_6",
         prompt: `You are an expert MTG deck builder and competitive player.
@@ -229,10 +232,48 @@ Focus on REAL MTG synergies based on actual card mechanics. Be specific and accu
           },
         },
       }),
+
+      base44.integrations.Core.InvokeLLM({
+        model: "claude_sonnet_4_6",
+        prompt: `You are an expert MTG deck evaluator. Analyze the following deck card list and predict its win rate potential.
+
+Deck cards:
+${cardListText}
+
+Evaluate three specific dimensions:
+
+1. MANA CURVE (score 0-100): Is the curve smooth and appropriate for the archetype? Too many high-cost cards = low score. Good low-to-mid curve = high score.
+
+2. REMOVAL/CREATURE RATIO (score 0-100): What is the balance between removal spells (kill spells, counters, bounce) and creatures? Pure creature flood or pure removal with no threats both score low. A healthy mix scores high.
+
+3. COLOR CONSISTENCY (score 0-100): How many colors are being used? Single color = near 100. Two colors = 70-90 depending on curve. Three+ colors without fixing = much lower. Consider whether the mana requirements are realistic.
+
+Then give:
+- An overall letter rating: S (>75%), A (65-75%), B (50-65%), C (35-50%), D (<35%)
+- An estimated win rate percentage (0-100) based on the above
+- A one-paragraph summary of the deck's strengths and weaknesses
+- 2-4 specific, actionable recommendations to improve win rate`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            overall_rating: { type: "string" },
+            estimated_win_rate: { type: "number" },
+            summary: { type: "string" },
+            mana_curve_score: { type: "number" },
+            mana_curve_detail: { type: "string" },
+            removal_ratio_score: { type: "number" },
+            removal_ratio_detail: { type: "string" },
+            color_consistency_score: { type: "number" },
+            color_consistency_detail: { type: "string" },
+            recommendations: { type: "array", items: { type: "string" } },
+          },
+        },
+      }),
     ]);
 
     setDeck(deckResult);
     setAnalysis(analysisResult);
+    setWinRate(winRateResult);
     setLoading(false);
     stopLoadingAnimation();
   };
@@ -242,6 +283,7 @@ Focus on REAL MTG synergies based on actual card mechanics. Be specific and accu
     setCards(null);
     setDeck(null);
     setAnalysis(null);
+    setWinRate(null);
     setError(null);
     setLoading(false);
     stopLoadingAnimation();
@@ -321,6 +363,7 @@ Focus on REAL MTG synergies based on actual card mechanics. Be specific and accu
                 className="space-y-8"
               >
                 <CardList cards={cards} />
+                <WinRatePotential winRate={winRate} />
                 <SynergyAnalysis analysis={analysis} />
                 <DeckSuggestion deck={deck} />
 
