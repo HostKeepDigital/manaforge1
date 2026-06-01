@@ -54,28 +54,35 @@ export default function Home() {
     setLoadingStep(1);
     const cardResult = await base44.integrations.Core.InvokeLLM({
       model: "claude_sonnet_4_6",
-      prompt: `You are an expert MTG (Magic: The Gathering) card identifier specializing in reading MTG Arena screenshots.
+      prompt: `You are an expert MTG (Magic: The Gathering) card identifier specializing in reading MTG Arena screenshots in ALL display formats.
 
-MTG Arena displays cards in MANY formats — full card art, compact list rows with small card names in sidebars, draft deck views with stacked columns, collection grids, etc. You MUST read ALL of them.
+MTG Arena shows decks in a STACKED COLUMN layout where cards overlap each other — only the top portion (card name banner) of each card is visible, with the full art of the LAST card in each stack fully shown. You MUST read ALL card names from ALL columns.
 
-CRITICAL INSTRUCTIONS:
-- Read every piece of text in the image carefully, including small card name labels in list/sidebar views
-- MTG Arena draft/deck screens show cards as TEXT ROWS in columns (e.g. "Flashback", "Mana Sculpt", "Zombify") — read ALL of these
-- Look for card names in ALL columns and ALL rows, even if the text is small
-- Quantities may appear as "x2", "x3", "x4" badges next to card names — capture those
-- Do NOT require full card art to be visible — text list rows count as valid cards
-- Common MTG Arena UI elements to read: Draft Deck panel, collection sidebar, card lists, booster pack views
-- If you see a "Draft Deck" panel with card names listed, read EVERY card name from it
-- Ignore UI chrome (buttons, mana symbols in headers, "Done" buttons) but read ALL card names
+SPECIFIC LAYOUT INSTRUCTIONS FOR MTG ARENA DECK/DRAFT SCREENS:
+- Cards are arranged in vertical stacked columns sorted by mana cost
+- Each card shows its NAME in a banner/label at the top — read EVERY name label
+- The bottom card in each stack shows full art — read that name too
+- Columns typically go left to right: low CMC to high CMC, then lands on the right
+- Lands (Plains, Island, Swamp, Mountain, Forest) are usually in the rightmost column with large quantity badges like "x9", "x8"
+- Quantity badges "x2", "x3" etc. appear on cards — capture those quantities
+- Some cards may have their full text box visible if they are the bottom of a stack — read those names too
+- Read EVERY column from left to right, top to bottom within each column
+- Do NOT skip cards just because they are partially obscured — the name banner is always readable
 
-For each card found:
-- name: exact card name as shown
-- colors: array of W/U/B/R/G/C based on your MTG knowledge of the card
+CARD NAME EXAMPLES visible in stacked deck views:
+Column 1 (leftmost, low cost): Names stacked with only top banners showing
+Column 2: More names stacked
+...
+Rightmost columns: Lands with large quantity badges
+
+For EVERY card identified:
+- name: exact card name as shown on the card banner
+- colors: array of W/U/B/R/G/C based on your MTG knowledge
 - type: Creature/Instant/Sorcery/Enchantment/Artifact/Planeswalker/Land
-- quantity: number shown (x2, x3, x4) or 1 if not specified
+- quantity: badge number (x2, x3, x4, x9 etc.) or 1 if none shown
 - mana_cost: from your MTG knowledge (e.g. "2WW")
 
-Be exhaustive — identify every single card visible in any form in the image.`,
+Be EXHAUSTIVE — a typical 40-card draft deck will have 20-25 non-land cards and 15-17 lands. If you find far fewer than that, you are missing cards. Look again at every column.`,
       file_urls: [file_url],
       response_json_schema: {
         type: "object",
