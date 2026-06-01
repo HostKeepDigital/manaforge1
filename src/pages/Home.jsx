@@ -145,7 +145,12 @@ ${cardListText}
 
 Build the strongest deck possible from ONLY these cards. You may include basic lands (Plains, Island, Swamp, Mountain, Forest) as needed.
 
-CRITICAL: The "cards" array MUST include the lands as entries with type "Land" and their quantities (e.g. {"name":"Plains","quantity":10,"type":"Land"}). Never return a deck with zero lands. A 60-card deck needs ~24 lands, a 40-card deck ~17.
+CRITICAL LAND COUNT RULES (follow exactly — do NOT over-land):
+- 60-card Constructed/Standard deck: 24 lands (range 23-26 depending on curve; aggro lower, control higher).
+- 40-card Limited/Draft/Sealed deck: 17 lands is the standard (range 16-18). 17 lands ≈ 42.5% of the deck — this is correct. NEVER put 19+ lands in a 40-card deck; 22 lands is far too many and is wrong.
+- Decide the deck size first (40 for a small/limited pool, 60 for a full Standard collection), then use the matching land count above.
+
+The "cards" array MUST include the lands as entries with type "Land" and their quantities (e.g. {"name":"Plains","quantity":9,"type":"Land"}). Never return a deck with zero lands, and never exceed the ranges above.
 
 Provide:
 1. A creative deck name
@@ -157,7 +162,7 @@ Provide:
 7. An example BAD opening 7-card hand: list 7 cards that represent a hand you should mulligan (e.g. too few/too many lands, uncastable cards, no early plays) plus a one-line explanation of why it's weak
 8. A detailed strategy guide (use markdown) explaining: how to play the deck, key combos, mulligan tips, and matchup advice
 
-Focus on: good mana curve, card synergies, win conditions, proper land count (24 for 60-card, 17 for 40-card).`,
+Focus on: good mana curve, card synergies, win conditions, and a correct land count (24 for 60-card, 17 for 40-card Limited — never more). Following Limited best practice (the standard taught by pros like Paul Cheon and other expert drafters), a 40-card deck should run ~17 lands, not 22.`,
         response_json_schema: {
           type: "object",
           properties: {
