@@ -1,0 +1,35 @@
+{
+  "name": "MetaKnowledge",
+  "type": "object",
+  "properties": {
+    "format": {
+      "type": "string",
+      "description": "Game format this snapshot covers (e.g. Standard, Limited/Draft)"
+    },
+    "current_sets": {
+      "type": "string",
+      "description": "Summary of the latest/most relevant MTG sets currently in rotation or being drafted"
+    },
+    "top_archetypes": {
+      "type": "string",
+      "description": "Markdown summary of the strongest current archetypes and why they are good"
+    },
+    "draft_strategies": {
+      "type": "string",
+      "description": "Markdown summary of current best draft/limited strategies and pick priorities"
+    },
+    "pro_insights": {
+      "type": "string",
+      "description": "Markdown summary of notable insights from recent Pro Tour drafts and expert drafters"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Concise overall summary used as context for deck building"
+    },
+    "researched_at": {
+      "type": "string",
+      "description": "ISO timestamp when this knowledge snapshot was researched"
+    }
+  },
+  "required": []
+}

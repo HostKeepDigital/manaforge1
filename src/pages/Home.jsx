@@ -133,6 +133,14 @@ For each card found:
       .map((c) => `${c.quantity || 1}x ${c.name} (${c.type}, colors: ${c.colors?.join("") || "C"}, cost: ${c.mana_cost || "?"})`)
       .join("\n");
 
+    // Pull the latest auto-researched meta knowledge snapshot so every build
+    // reflects current sets, Pro Tour drafts, and evolving strategies.
+    const knowledgeRecords = await base44.entities.MetaKnowledge.list("-researched_at", 1);
+    const knowledge = knowledgeRecords?.[0];
+    const metaContext = knowledge
+      ? `\n\nCURRENT META KNOWLEDGE (auto-researched ${knowledge.researched_at?.split("T")[0]}, use this to stay up to date with the latest sets and strategies):\n${knowledge.summary || ""}\n${knowledge.draft_strategies || ""}\n${knowledge.pro_insights || ""}`
+      : "";
+
     // Step 3: Run synergy analysis, deck building, AND win rate analysis in parallel
     const [deckResult, analysisResult, winRateResult] = await Promise.all([
       base44.integrations.Core.InvokeLLM({
@@ -162,7 +170,7 @@ Provide:
 7. An example BAD opening 7-card hand: list 7 cards that represent a hand you should mulligan (e.g. too few/too many lands, uncastable cards, no early plays) plus a one-line explanation of why it's weak
 8. A detailed strategy guide (use markdown) explaining: how to play the deck, key combos, mulligan tips, and matchup advice
 
-Focus on: good mana curve, card synergies, win conditions, and a correct land count (24 for 60-card, 17 for 40-card Limited — never more). Following Limited best practice (the standard taught by pros like Paul Cheon and other expert drafters), a 40-card deck should run ~17 lands, not 22.`,
+Focus on: good mana curve, card synergies, win conditions, and a correct land count (24 for 60-card, 17 for 40-card Limited — never more). Following Limited best practice (the standard taught by pros like Paul Cheon and other expert drafters), a 40-card deck should run ~17 lands, not 22.${metaContext}`,
         response_json_schema: {
           type: "object",
           properties: {
@@ -231,7 +239,7 @@ Your analysis must cover:
 
 3. COLLECTION POWER: Rate the overall collection power (S/A/B/C/D tier) and give a brief summary.
 
-Focus on REAL MTG synergies based on actual card mechanics. Be specific and accurate.`,
+Focus on REAL MTG synergies based on actual card mechanics. Be specific and accurate.${metaContext}`,
         response_json_schema: {
           type: "object",
           properties: {
