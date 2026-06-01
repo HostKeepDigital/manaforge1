@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Layers } from "lucide-react";
+import CardPreview from "./CardPreview";
 
 const manaColorMap = {
   W: "bg-amber-100 text-amber-900",
@@ -40,9 +41,11 @@ export default function CardList({ cards }) {
             transition={{ delay: index * 0.03 }}
             className="bg-secondary/50 rounded-lg px-3 py-2 border border-border/50 hover:border-primary/30 transition-colors"
           >
-            <p className="text-sm font-body font-medium text-foreground truncate">
-              {card.name}
-            </p>
+            <CardPreview name={card.name}>
+              <p className="text-sm font-body font-medium text-foreground truncate cursor-help">
+                {card.name}
+              </p>
+            </CardPreview>
             <div className="flex items-center gap-1 mt-1">
               {card.colors?.map((color, i) => (
                 <span
