@@ -22,15 +22,34 @@ Deno.serve(async (req) => {
     const research = await base44.asServiceRole.integrations.Core.InvokeLLM({
       model: 'gemini_3_1_pro',
       add_context_from_internet: true,
-      prompt: `You are an expert Magic: The Gathering analyst. Research the CURRENT state of MTG as of ${today} using up-to-date internet sources.
+      prompt: `You are an expert Magic: The Gathering Limited/Draft coach. Research the CURRENT state of MTG as of ${today} by reading FULL drafting guides and articles from across the internet.
 
-Cover both Standard (Constructed) and Limited/Draft. Specifically research:
-1. The newest MTG sets currently legal / being drafted right now, and which are most relevant.
-2. The strongest current Constructed archetypes and why they perform well.
-3. The best current Limited/Draft strategies: color pair power rankings, pick priorities, archetype signals, and correct land counts (remember ~17 lands for 40-card Limited, ~24 for 60-card Standard).
-4. Notable insights from recent Pro Tour drafts and how top pro drafters are approaching the current format.
+Read and synthesize the best publicly available drafting/deckbuilding content, including sources like:
+- ChannelFireball (CFB) draft guides and Limited set reviews
+- Draftsim, 17Lands data articles and tier lists
+- Cardmarket Insight, MTGGoldfish Limited articles
+- Star City Games (SCG) Limited content
+- Lords of Limited / Limited Resources podcast takeaways
+- Reddit r/lrcast and r/spikes Limited threads
+- Pro Tour and Arena Open draft coverage and top-drafter interviews
 
-Be specific, accurate, and cite the set names and archetypes by their real names. Summarize concisely.`,
+Distill the GENERAL, TIMELESS deckbuilding principles AND the current-format specifics. Specifically capture:
+
+1. CURRENT SETS: the newest sets being drafted right now and which formats are live.
+
+2. TOP ARCHETYPES: the strongest current Constructed AND Limited archetypes/color pairs and why they perform.
+
+3. DRAFT STRATEGIES — be very concrete and actionable. Include:
+   - The fundamental deckbuilding template for a 40-card Limited deck: 14-17 creatures (aim ~15-16), 6-9 non-creature spells, 16-17 lands.
+   - A strong, low mana curve: how many 1-2-3-4-5+ drops to aim for (a typical good curve has its bulk at 2-3 mana).
+   - "Bombs, Removal, Evasion, Creatures, Card advantage, Tricks" (BREAD) pick priority and how to apply it.
+   - Reading signals, staying open early, committing to two colors, when a splash is acceptable.
+   - PIP COUNTING for the mana base: count colored mana symbols per color across all spells and distribute the 16-17 lands proportionally (main color ~9-10 sources, secondary ~7-8, splash ~3-4; double-pip costs demand more sources).
+   - Common deckbuilding mistakes to avoid (too few creatures, too many lands, greedy 3-color manabases, top-heavy curves).
+
+4. PRO INSIGHTS: notable takeaways from recent Pro Tour/Arena Open drafts and how top drafters approach the current format.
+
+Be specific, accurate, cite set/archetype names, and write the draft_strategies field as a thorough, practical guide a deckbuilder can follow step by step.`,
       response_json_schema: {
         type: 'object',
         properties: {
