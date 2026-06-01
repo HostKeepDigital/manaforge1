@@ -153,24 +153,35 @@ ${cardListText}
 
 Build the strongest deck possible from ONLY these cards. You may include basic lands (Plains, Island, Swamp, Mountain, Forest) as needed.
 
-CRITICAL LAND COUNT RULES (follow exactly — do NOT over-land):
-- 60-card Constructed/Standard deck: 24 lands (range 23-26 depending on curve; aggro lower, control higher).
-- 40-card Limited/Draft/Sealed deck: 17 lands is the standard (range 16-18). 17 lands ≈ 42.5% of the deck — this is correct. NEVER put 19+ lands in a 40-card deck; 22 lands is far too many and is wrong.
-- Decide the deck size first (40 for a small/limited pool, 60 for a full Standard collection), then use the matching land count above.
+CRITICAL DECK COMPOSITION RULES (this is a 40-card Limited/Draft deck unless the pool is clearly a full 60-card Standard collection — default to 40):
 
-The "cards" array MUST include the lands as entries with type "Land" and their quantities (e.g. {"name":"Plains","quantity":9,"type":"Land"}). Never return a deck with zero lands, and never exceed the ranges above.
+For a 40-card Limited deck, the composition MUST be:
+- CREATURES: 14-17 creatures. This is the most important rule — Limited is won primarily through creatures/board presence. Aim for ~15-16. NEVER build a creature-light deck; if the pool is short on creatures, run the maximum available rather than padding with spells.
+- NON-CREATURE SPELLS: the remaining ~6-9 slots (removal, combat tricks, card advantage). These support the creatures, they do not replace them.
+- LANDS: 16-17 lands (17 is standard for most decks, 16 only for a low/aggressive curve). NEVER fewer than 16 and NEVER more than 18.
+- These add up to 40: e.g. 16 creatures + 7 spells + 17 lands = 40.
+
+For a 60-card Standard deck: ~24 lands (23-26), and still favor a healthy creature count for the archetype.
+
+PIP COUNTING — build the mana base by counting colored mana symbols (pips), NOT just by color count:
+- Go through every spell in the deck and tally the colored pips per color (e.g. a card costing 1WW = 2 white pips; count every copy).
+- Distribute the 16-17 lands proportionally to the pip totals of each color. A color with far more pips gets far more sources; a tiny splash gets only a few sources.
+- Roughly: a main color needs ~9-10 sources, a secondary color ~7-8, a light splash ~3-4. Heavy double-pip costs (e.g. WW, GG) demand MORE sources of that color.
+- Prefer two colors. Only go three colors if the pips and any fixing genuinely support it.
+
+The "cards" array MUST include the lands as entries with type "Land" and their quantities (e.g. {"name":"Plains","quantity":9,"type":"Land"}), and the basic land split MUST reflect the pip counts above. Never return a deck with zero lands, fewer than 14 creatures, or land counts outside the ranges above.
 
 Provide:
 1. A creative deck name
 2. The deck archetype (aggro, midrange, control, combo, tempo, etc.)
 3. The deck's primary colors
 4. The full deck list with quantities and card types grouped correctly
-5. The TOTAL number of lands in the deck (land_count) and a one-line explanation of why that count is optimal for this archetype/curve
+5. The TOTAL number of lands in the deck (land_count) and a one-line explanation that states the creature count, spell count, and how the basic-land split was chosen from the colored pip counts
 6. An example GOOD opening 7-card hand: list 7 cards that represent an ideal keepable hand (right land count, castable early plays, a clear game plan) plus a one-line explanation of why it's strong
 7. An example BAD opening 7-card hand: list 7 cards that represent a hand you should mulligan (e.g. too few/too many lands, uncastable cards, no early plays) plus a one-line explanation of why it's weak
 8. A detailed strategy guide (use markdown) explaining: how to play the deck, key combos, mulligan tips, and matchup advice
 
-Focus on: good mana curve, card synergies, win conditions, and a correct land count (24 for 60-card, 17 for 40-card Limited — never more). Following Limited best practice (the standard taught by pros like Paul Cheon and other expert drafters), a 40-card deck should run ~17 lands, not 22.${metaContext}`,
+Focus on: a creature-centric build (14-17 creatures in 40-card Limited), a smooth low curve, card synergies, clear win conditions, a pip-weighted mana base, and 16-17 lands (never 22). Following Limited best practice taught by pros like Paul Cheon and other expert drafters: creatures win games, count your pips, and run 16-17 lands.${metaContext}`,
         response_json_schema: {
           type: "object",
           properties: {
