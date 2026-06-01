@@ -137,8 +137,16 @@ For each card found:
     // reflects current sets, Pro Tour drafts, and evolving strategies.
     const knowledgeRecords = await base44.entities.MetaKnowledge.list("-researched_at", 1);
     const knowledge = knowledgeRecords?.[0];
+
+    // The full per-set breakdowns are stored as an uploaded markdown file; fetch its contents.
+    let setBreakdowns = "";
+    if (knowledge?.set_breakdowns_url) {
+      const res = await fetch(knowledge.set_breakdowns_url);
+      if (res.ok) setBreakdowns = await res.text();
+    }
+
     const metaContext = knowledge
-      ? `\n\nCURRENT META KNOWLEDGE (auto-researched ${knowledge.researched_at?.split("T")[0]}, use this to stay up to date with the latest sets and strategies):\n${knowledge.summary || ""}\n${knowledge.draft_strategies || ""}\n${knowledge.pro_insights || ""}\n\nINDIVIDUAL SET BREAKDOWNS (use the relevant set's mechanics, archetypes, and key cards when building):\n${knowledge.set_breakdowns || ""}`
+      ? `\n\nCURRENT META KNOWLEDGE (auto-researched ${knowledge.researched_at?.split("T")[0]}, use this to stay up to date with the latest sets and strategies):\n${knowledge.summary || ""}\n${knowledge.draft_strategies || ""}\n${knowledge.pro_insights || ""}\n\nINDIVIDUAL SET BREAKDOWNS (use the relevant set's mechanics, archetypes, and key cards when building):\n${setBreakdowns}`
       : "";
 
     // Step 3: Run synergy analysis, deck building, AND win rate analysis in parallel

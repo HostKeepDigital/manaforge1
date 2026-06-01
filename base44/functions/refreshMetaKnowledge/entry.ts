@@ -19,9 +19,37 @@ Deno.serve(async (req) => {
 
     const today = new Date().toISOString().split('T')[0];
 
-    // Two research passes run in parallel: (1) general meta + drafting principles,
-    // (2) individual per-set breakdowns across past, present, and announced sets.
-    const [research, setResearch] = await Promise.all([
+    // A reusable helper that researches a specific batch of named sets. We split
+    // the full back-catalogue (original Strixhaven 2021 → upcoming) into several
+    // parallel passes so each response stays detailed and is never truncated.
+    const researchSetBatch = (label, setList) =>
+      base44.asServiceRole.integrations.Core.InvokeLLM({
+        model: 'gemini_3_1_pro',
+        add_context_from_internet: true,
+        prompt: `You are an expert Magic: The Gathering Limited set reviewer. As of ${today}, research these specific MTG sets using the internet and write a thorough Limited breakdown of EACH one. Do not skip any set in this list.
+
+SETS TO COVER (${label}):
+${setList}
+
+Read individual set breakdowns and Limited set reviews from sources like ChannelFireball, Draftsim, 17Lands, Cardmarket, MTGGoldfish, Limited Resources, and the official MTG set pages.
+
+For EACH set, provide a clearly headed markdown section (use the real set name and 3-letter code) covering:
+- Set name, code, and release window.
+- Core mechanics and keywords introduced/returning.
+- The two-color Limited archetypes (or the set's draft themes) and which are strongest.
+- Standout bombs, premium removal, and the best commons/uncommons to prioritize.
+- The set's overall Limited speed (aggressive vs grindy) and any signpost cards.
+- Any rotation/legality notes.
+
+Be specific and accurate, cite real card and set names, and format as clean markdown with one '## ' section per set. Keep each set concise but complete so all listed sets fit in the response.`,
+        response_json_schema: {
+          type: 'object',
+          properties: { set_breakdowns: { type: 'string' } },
+        },
+      });
+
+    // Run the general meta research plus several per-era set batches in parallel.
+    const [research, ...setBatches] = await Promise.all([
     base44.asServiceRole.integrations.Core.InvokeLLM({
       model: 'gemini_3_1_pro',
       add_context_from_internet: true,
@@ -65,43 +93,74 @@ Be specific, accurate, cite set/archetype names, and write the draft_strategies 
       },
     }),
 
-    base44.asServiceRole.integrations.Core.InvokeLLM({
-      model: 'gemini_3_1_pro',
-      add_context_from_internet: true,
-      prompt: `You are an expert Magic: The Gathering Limited set reviewer. As of ${today}, research INDIVIDUAL MTG sets one by one using the internet, and write a thorough breakdown of each.
-
-Cover three groups:
-1. PRESENT: the set(s) currently being drafted on MTG Arena right now.
-2. PAST: the most relevant recent Standard-legal and popular Limited sets from the last ~2 years.
-3. FUTURE: any officially announced/spoiled upcoming sets (use spoiler/preview coverage; clearly mark these as upcoming and note info may be partial).
-
-Read individual set breakdowns and Limited set reviews from sources like ChannelFireball, Draftsim, 17Lands, Cardmarket, MTGGoldfish, Limited Resources, and the official MTG set pages.
-
-For EACH set, provide a clearly headed section (use the real set name and 3-letter code) covering:
-- Set name, code, and release window.
-- Core mechanics and keywords introduced/returning.
-- The 10 two-color Limited archetypes (or the set's draft themes) and which are strongest.
-- Standout bombs, premium removal, and the best commons/uncommons to prioritize.
-- The set's overall Limited speed (aggressive vs grindy) and any signpost cards.
-- Any rotation/legality notes.
-
-Be specific and accurate, cite real card and set names, and format as clean markdown with one section per set.`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          set_breakdowns: { type: 'string' },
-        },
-      },
-    }),
+    // 2021 era (original Strixhaven onward)
+    researchSetBatch(
+      '2021 sets',
+      `- Kaldheim (KHM) — Feb 2021
+- Strixhaven: School of Mages (STX) — April 2021 (the ORIGINAL Strixhaven, with the Mystical Archive)
+- Adventures in the Forgotten Realms (AFR) — July 2021
+- Innistrad: Midnight Hunt (MID) — Sept 2021
+- Innistrad: Crimson Vow (VOW) — Nov 2021`
+    ),
+    // 2022 era
+    researchSetBatch(
+      '2022 sets',
+      `- Kamigawa: Neon Dynasty (NEO) — Feb 2022
+- Streets of New Capenna (SNC) — April 2022
+- Dominaria United (DMU) — Sept 2022
+- The Brothers' War (BRO) — Nov 2022`
+    ),
+    // 2023 era
+    researchSetBatch(
+      '2023 sets',
+      `- Phyrexia: All Will Be One (ONE) — Feb 2023
+- March of the Machine (MOM) — April 2023
+- Wilds of Eldraine (WOE) — Sept 2023
+- The Lost Caverns of Ixalan (LCI) — Nov 2023`
+    ),
+    // 2024 era
+    researchSetBatch(
+      '2024 sets',
+      `- Murders at Karlov Manor (MKM) — Feb 2024
+- Outlaws of Thunder Junction (OTJ) — April 2024
+- Bloomburrow (BLB) — Aug 2024
+- Duskmourn: House of Horror (DSK) — Sept 2024`
+    ),
+    // 2025–2026 era + present + future
+    researchSetBatch(
+      '2025-2026 + present + upcoming sets',
+      `- Aetherdrift (DFT) — Feb 2025
+- Tarkir: Dragonstorm (TDM) — April 2025
+- Lorwyn Eclipsed (ECL) — Jan 2026
+- Secrets of Strixhaven (SOS) — April 2026 (PRESENT: currently being drafted on MTG Arena)
+- Any officially announced/spoiled UPCOMING sets after Secrets of Strixhaven (mark clearly as upcoming; info may be partial)`
+    ),
     ]);
 
     const data = research?.response && typeof research.response === 'object' ? research.response : research;
-    const setData = setResearch?.response && typeof setResearch.response === 'object' ? setResearch.response : setResearch;
+
+    // Merge all per-era set breakdowns into one combined markdown document.
+    const set_breakdowns = setBatches
+      .map((b) => {
+        const d = b?.response && typeof b.response === 'object' ? b.response : b;
+        return d?.set_breakdowns || '';
+      })
+      .filter(Boolean)
+      .join('\n\n');
+
+    // The combined set breakdowns can exceed the entity field size limit, so we
+    // upload it as a markdown file and store only the URL on the entity.
+    let set_breakdowns_url = '';
+    if (set_breakdowns) {
+      const file = new File([set_breakdowns], 'set_breakdowns.md', { type: 'text/markdown' });
+      const upload = await base44.asServiceRole.integrations.Core.UploadFile({ file });
+      set_breakdowns_url = upload?.file_url || '';
+    }
 
     const record = await base44.asServiceRole.entities.MetaKnowledge.create({
       format: 'All',
       current_sets: data.current_sets || '',
-      set_breakdowns: setData?.set_breakdowns || '',
+      set_breakdowns_url: set_breakdowns_url,
       top_archetypes: data.top_archetypes || '',
       draft_strategies: data.draft_strategies || '',
       pro_insights: data.pro_insights || '',
