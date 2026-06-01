@@ -57,51 +57,36 @@ export default function Home() {
     setLoadingStep(1);
     const cardResult = await base44.integrations.Core.InvokeLLM({
       model: "claude_sonnet_4_6",
-      prompt: `You are an expert MTG (Magic: The Gathering) card identifier. Your job is to extract EVERY card name visible in any MTG Arena screenshot, regardless of the screen type.
+      prompt: `You are reading an MTG Arena deck screenshot. I can see this is a DECK VIEW showing stacked card columns.
 
-MTG Arena has MANY different screen layouts. Identify which type this is and read accordingly:
+TASK: Read and list EVERY single card name you can see in this image. This is purely a text-reading exercise.
 
-LAYOUT TYPE 1 — DECK VIEW (stacked columns):
-- Cards stacked vertically in columns, sorted by mana cost (low left, high right, lands far right)
-- Only the name banner at the TOP of each card is visible for most cards
-- The BOTTOM card in each stack shows full art
-- Quantity badges like "x2", "x3", "x4", "x9" appear on card stacks
-- Read EVERY name banner in EVERY column, left to right, top to bottom
-- A 40-card deck = ~20-25 spells + 15-17 lands. A 60-card deck = ~36-38 spells + 22-24 lands
+HOW TO READ THE IMAGE:
+The deck is shown in vertical columns of stacked cards. In each column:
+- Most cards show ONLY their name banner (a rectangular label at the top of the card)
+- The bottom card of each stack shows the full card art
+- Look for text in gold/yellow bordered name bars on each card
+- Quantity badges show as "x2", "x3" etc on stacked groups
 
-LAYOUT TYPE 2 — COLLECTION / CARD GRID:
-- Cards displayed in a grid or rows, each showing full or partial card art
-- Card names appear at the TOP of each card frame
-- Quantity indicators (owned copies) may appear as numbers or badges
-- Read EVERY card in the grid — scan left to right, top to bottom
+SCAN THE IMAGE SYSTEMATICALLY:
+1. Start at the leftmost column, read each card name from TOP to BOTTOM
+2. Move to the next column, read top to bottom
+3. Continue through ALL columns to the right
+4. The rightmost columns are usually lands (Plains, Swamp, Island, Mountain, Forest) with large quantity badges like x8, x9
 
-LAYOUT TYPE 3 — DRAFT PACK:
-- 8-14 cards shown side by side or in a grid
-- Each card shows full or partial art with name visible
-- No quantity badges — each is a single copy
-- Read ALL cards in the pack
+WHAT CARD NAMES LOOK LIKE in this UI:
+- They are written in a serif or stylized font on a dark/colored name plate
+- Examples of what you'll see: "Defiant Strike", "Guiding Voice", "Star Pupil", "Shadewing Laureate", "Blot Out the Sky", "Plains", "Swamp"
+- Every text label on a card IS a card name — read ALL of them
 
-LAYOUT TYPE 4 — TEXT LIST / SIDEBOARD PANEL:
-- Card names appear as a plain text list
-- May include quantities like "2 Lightning Bolt" or "4x Counterspell"
-- Read every line as a card entry
+CRITICAL: This image CLEARLY contains MTG cards. Do NOT return an empty list. Read every name label visible in the image. If you can see text on a card frame, that is a card name — include it.
 
-LAYOUT TYPE 5 — IN-GAME / HAND VIEW:
-- Cards are shown in hand or on the battlefield
-- Names may appear in the card frame or as floating labels
-- Read all visible card names
-
-UNIVERSAL RULES (apply to ALL layouts):
-- Read text carefully — card names are proper nouns (e.g. "Llanowar Elves", "Shock", "Aether Channeler")
-- If you see a word that looks like an MTG card name, include it
-- Do NOT leave out cards just because they are partially visible
-- Basic lands (Plains, Island, Swamp, Mountain, Forest) count as cards — include them with their quantities
-- If a card appears multiple times in different columns/groups, sum the quantities
-- quantity: the number shown on the badge/stack, or 1 if no badge visible
-- mana_cost: use your MTG card knowledge to fill this in
-- colors: W/U/B/R/G/C array based on card identity
-
-IMPORTANT: Be MAXIMALLY INCLUSIVE. If you are unsure whether something is a card name, include it. It is better to include a false positive than to miss real cards. Return every card you can identify.`,
+For each card found:
+- name: exactly as written in the name banner
+- quantity: the x-number badge if present, otherwise 1
+- type: Creature/Instant/Sorcery/Enchantment/Artifact/Land/Planeswalker (use your MTG knowledge)
+- colors: W/U/B/R/G/C array
+- mana_cost: from your MTG knowledge`,
       file_urls: [file_url],
       response_json_schema: {
         type: "object",
@@ -127,7 +112,7 @@ IMPORTANT: Be MAXIMALLY INCLUSIVE. If you are unsure whether something is a card
     setCards(identifiedCards);
 
     if (identifiedCards.length === 0) {
-      setError("No MTG cards could be identified in this image. Try a clearer screenshot from MTG Arena.");
+      setError("No MTG cards could be identified. Please upload a direct screenshot from MTG Arena (not a photo of your screen). Make sure the deck or card view is clearly visible.");
       setLoading(false);
       stopLoadingAnimation();
       return;
