@@ -6,6 +6,7 @@ import { Crown, Copy, ChevronDown, ChevronUp, Swords, Shield, Zap, TreePine, Plu
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import ManaCurveChart from "./ManaCurveChart";
+import OpeningHands from "./OpeningHands";
 
 const typeIcons = {
   Creature: Swords,
@@ -141,6 +142,14 @@ export default function DeckSuggestion({ deck }) {
 
       {/* Mana Curve Chart */}
       <ManaCurveChart cards={resolvedCards} />
+
+      {/* Land count + opening hands */}
+      <OpeningHands
+        landCount={deck.land_count}
+        landExplanation={deck.land_count_explanation}
+        goodHand={deck.good_opening_hand}
+        badHand={deck.bad_opening_hand}
+      />
 
       {/* Cards by type with adjusters */}
       <div className="bg-card rounded-xl border border-border p-5 space-y-1">

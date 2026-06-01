@@ -72,7 +72,17 @@ SCAN THE IMAGE SYSTEMATICALLY:
 1. Start at the leftmost column, read each card name from TOP to BOTTOM
 2. Move to the next column, read top to bottom
 3. Continue through ALL columns to the right
-4. The rightmost columns are usually lands (Plains, Swamp, Island, Mountain, Forest) with large quantity badges like x8, x9
+4. The rightmost columns are usually lands with large quantity badges like x8, x9
+
+CRITICAL — RECOGNISING LANDS BY THEIR ART (they often have NO visible name banner):
+Basic lands frequently appear as full art with only a small mana symbol in the corner and a quantity badge. You MUST identify them by their artwork and mana symbol, NOT just text:
+- PLAINS: white/golden plains, fields, deserts, white sun mana symbol (W). Name it "Plains".
+- ISLAND: blue water, oceans, islands, blue water-drop mana symbol (U). Name it "Island".
+- SWAMP: black swamps, dark marshes, skull/black mana symbol (B). Name it "Swamp".
+- MOUNTAIN: red mountains, volcanoes, fire, red mana symbol (R). Name it "Mountain".
+- FOREST: green forests, trees, nature, green tree mana symbol (G). Name it "Forest".
+- Non-basic/dual lands: read their name banner normally (e.g. "Plaza of Heroes", "Brushland").
+You MUST include EVERY land you see, using the quantity badge for the count. Do not skip lands just because they have no name text — match them by art + mana symbol.
 
 WHAT CARD NAMES LOOK LIKE in this UI:
 - They are written in a serif or stylized font on a dark/colored name plate
@@ -140,7 +150,10 @@ Provide:
 2. The deck archetype (aggro, midrange, control, combo, tempo, etc.)
 3. The deck's primary colors
 4. The full deck list with quantities and card types grouped correctly
-5. A detailed strategy guide (use markdown) explaining: how to play the deck, key combos, mulligan tips, and matchup advice
+5. The TOTAL number of lands in the deck (land_count) and a one-line explanation of why that count is optimal for this archetype/curve
+6. An example GOOD opening 7-card hand: list 7 cards that represent an ideal keepable hand (right land count, castable early plays, a clear game plan) plus a one-line explanation of why it's strong
+7. An example BAD opening 7-card hand: list 7 cards that represent a hand you should mulligan (e.g. too few/too many lands, uncastable cards, no early plays) plus a one-line explanation of why it's weak
+8. A detailed strategy guide (use markdown) explaining: how to play the deck, key combos, mulligan tips, and matchup advice
 
 Focus on: good mana curve, card synergies, win conditions, proper land count (24 for 60-card, 17 for 40-card).`,
         response_json_schema: {
@@ -158,6 +171,22 @@ Focus on: good mana curve, card synergies, win conditions, proper land count (24
                   quantity: { type: "number" },
                   type: { type: "string" },
                 },
+              },
+            },
+            land_count: { type: "number" },
+            land_count_explanation: { type: "string" },
+            good_opening_hand: {
+              type: "object",
+              properties: {
+                cards: { type: "array", items: { type: "string" } },
+                explanation: { type: "string" },
+              },
+            },
+            bad_opening_hand: {
+              type: "object",
+              properties: {
+                cards: { type: "array", items: { type: "string" } },
+                explanation: { type: "string" },
               },
             },
             strategy: { type: "string" },
