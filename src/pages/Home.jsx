@@ -57,35 +57,51 @@ export default function Home() {
     setLoadingStep(1);
     const cardResult = await base44.integrations.Core.InvokeLLM({
       model: "claude_sonnet_4_6",
-      prompt: `You are an expert MTG (Magic: The Gathering) card identifier specializing in reading MTG Arena screenshots in ALL display formats.
+      prompt: `You are an expert MTG (Magic: The Gathering) card identifier. Your job is to extract EVERY card name visible in any MTG Arena screenshot, regardless of the screen type.
 
-MTG Arena shows decks in a STACKED COLUMN layout where cards overlap each other — only the top portion (card name banner) of each card is visible, with the full art of the LAST card in each stack fully shown. You MUST read ALL card names from ALL columns.
+MTG Arena has MANY different screen layouts. Identify which type this is and read accordingly:
 
-SPECIFIC LAYOUT INSTRUCTIONS FOR MTG ARENA DECK/DRAFT SCREENS:
-- Cards are arranged in vertical stacked columns sorted by mana cost
-- Each card shows its NAME in a banner/label at the top — read EVERY name label
-- The bottom card in each stack shows full art — read that name too
-- Columns typically go left to right: low CMC to high CMC, then lands on the right
-- Lands (Plains, Island, Swamp, Mountain, Forest) are usually in the rightmost column with large quantity badges like "x9", "x8"
-- Quantity badges "x2", "x3" etc. appear on cards — capture those quantities
-- Some cards may have their full text box visible if they are the bottom of a stack — read those names too
-- Read EVERY column from left to right, top to bottom within each column
-- Do NOT skip cards just because they are partially obscured — the name banner is always readable
+LAYOUT TYPE 1 — DECK VIEW (stacked columns):
+- Cards stacked vertically in columns, sorted by mana cost (low left, high right, lands far right)
+- Only the name banner at the TOP of each card is visible for most cards
+- The BOTTOM card in each stack shows full art
+- Quantity badges like "x2", "x3", "x4", "x9" appear on card stacks
+- Read EVERY name banner in EVERY column, left to right, top to bottom
+- A 40-card deck = ~20-25 spells + 15-17 lands. A 60-card deck = ~36-38 spells + 22-24 lands
 
-CARD NAME EXAMPLES visible in stacked deck views:
-Column 1 (leftmost, low cost): Names stacked with only top banners showing
-Column 2: More names stacked
-...
-Rightmost columns: Lands with large quantity badges
+LAYOUT TYPE 2 — COLLECTION / CARD GRID:
+- Cards displayed in a grid or rows, each showing full or partial card art
+- Card names appear at the TOP of each card frame
+- Quantity indicators (owned copies) may appear as numbers or badges
+- Read EVERY card in the grid — scan left to right, top to bottom
 
-For EVERY card identified:
-- name: exact card name as shown on the card banner
-- colors: array of W/U/B/R/G/C based on your MTG knowledge
-- type: Creature/Instant/Sorcery/Enchantment/Artifact/Planeswalker/Land
-- quantity: badge number (x2, x3, x4, x9 etc.) or 1 if none shown
-- mana_cost: from your MTG knowledge (e.g. "2WW")
+LAYOUT TYPE 3 — DRAFT PACK:
+- 8-14 cards shown side by side or in a grid
+- Each card shows full or partial art with name visible
+- No quantity badges — each is a single copy
+- Read ALL cards in the pack
 
-Be EXHAUSTIVE — a typical 40-card draft deck will have 20-25 non-land cards and 15-17 lands. If you find far fewer than that, you are missing cards. Look again at every column.`,
+LAYOUT TYPE 4 — TEXT LIST / SIDEBOARD PANEL:
+- Card names appear as a plain text list
+- May include quantities like "2 Lightning Bolt" or "4x Counterspell"
+- Read every line as a card entry
+
+LAYOUT TYPE 5 — IN-GAME / HAND VIEW:
+- Cards are shown in hand or on the battlefield
+- Names may appear in the card frame or as floating labels
+- Read all visible card names
+
+UNIVERSAL RULES (apply to ALL layouts):
+- Read text carefully — card names are proper nouns (e.g. "Llanowar Elves", "Shock", "Aether Channeler")
+- If you see a word that looks like an MTG card name, include it
+- Do NOT leave out cards just because they are partially visible
+- Basic lands (Plains, Island, Swamp, Mountain, Forest) count as cards — include them with their quantities
+- If a card appears multiple times in different columns/groups, sum the quantities
+- quantity: the number shown on the badge/stack, or 1 if no badge visible
+- mana_cost: use your MTG card knowledge to fill this in
+- colors: W/U/B/R/G/C array based on card identity
+
+IMPORTANT: Be MAXIMALLY INCLUSIVE. If you are unsure whether something is a card name, include it. It is better to include a false positive than to miss real cards. Return every card you can identify.`,
       file_urls: [file_url],
       response_json_schema: {
         type: "object",
