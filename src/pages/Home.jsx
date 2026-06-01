@@ -108,7 +108,7 @@ For each card found:
       },
     });
 
-    const identifiedCards = cardResult.cards || [];
+    const identifiedCards = cardResult.cards || cardResult.response?.cards || [];
     setCards(identifiedCards);
 
     if (identifiedCards.length === 0) {
