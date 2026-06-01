@@ -19,7 +19,10 @@ Deno.serve(async (req) => {
 
     const today = new Date().toISOString().split('T')[0];
 
-    const research = await base44.asServiceRole.integrations.Core.InvokeLLM({
+    // Two research passes run in parallel: (1) general meta + drafting principles,
+    // (2) individual per-set breakdowns across past, present, and announced sets.
+    const [research, setResearch] = await Promise.all([
+    base44.asServiceRole.integrations.Core.InvokeLLM({
       model: 'gemini_3_1_pro',
       add_context_from_internet: true,
       prompt: `You are an expert Magic: The Gathering Limited/Draft coach. Research the CURRENT state of MTG as of ${today} by reading FULL drafting guides and articles from across the internet.
@@ -60,13 +63,45 @@ Be specific, accurate, cite set/archetype names, and write the draft_strategies 
           summary: { type: 'string' },
         },
       },
-    });
+    }),
+
+    base44.asServiceRole.integrations.Core.InvokeLLM({
+      model: 'gemini_3_1_pro',
+      add_context_from_internet: true,
+      prompt: `You are an expert Magic: The Gathering Limited set reviewer. As of ${today}, research INDIVIDUAL MTG sets one by one using the internet, and write a thorough breakdown of each.
+
+Cover three groups:
+1. PRESENT: the set(s) currently being drafted on MTG Arena right now.
+2. PAST: the most relevant recent Standard-legal and popular Limited sets from the last ~2 years.
+3. FUTURE: any officially announced/spoiled upcoming sets (use spoiler/preview coverage; clearly mark these as upcoming and note info may be partial).
+
+Read individual set breakdowns and Limited set reviews from sources like ChannelFireball, Draftsim, 17Lands, Cardmarket, MTGGoldfish, Limited Resources, and the official MTG set pages.
+
+For EACH set, provide a clearly headed section (use the real set name and 3-letter code) covering:
+- Set name, code, and release window.
+- Core mechanics and keywords introduced/returning.
+- The 10 two-color Limited archetypes (or the set's draft themes) and which are strongest.
+- Standout bombs, premium removal, and the best commons/uncommons to prioritize.
+- The set's overall Limited speed (aggressive vs grindy) and any signpost cards.
+- Any rotation/legality notes.
+
+Be specific and accurate, cite real card and set names, and format as clean markdown with one section per set.`,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          set_breakdowns: { type: 'string' },
+        },
+      },
+    }),
+    ]);
 
     const data = research?.response && typeof research.response === 'object' ? research.response : research;
+    const setData = setResearch?.response && typeof setResearch.response === 'object' ? setResearch.response : setResearch;
 
     const record = await base44.asServiceRole.entities.MetaKnowledge.create({
       format: 'All',
       current_sets: data.current_sets || '',
+      set_breakdowns: setData?.set_breakdowns || '',
       top_archetypes: data.top_archetypes || '',
       draft_strategies: data.draft_strategies || '',
       pro_insights: data.pro_insights || '',

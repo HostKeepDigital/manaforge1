@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Summary of the latest/most relevant MTG sets currently in rotation or being drafted"
     },
+    "set_breakdowns": {
+      "type": "string",
+      "description": "Markdown breakdown of individual MTG sets (past, present, and announced future sets): each set's mechanics, themes, Limited archetypes/color pairs, key bombs and commons, and how to draft it"
+    },
     "top_archetypes": {
       "type": "string",
       "description": "Markdown summary of the strongest current archetypes and why they are good"
