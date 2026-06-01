@@ -1,0 +1,136 @@
+{
+  "name": "SetGuide",
+  "type": "object",
+  "properties": {
+    "set_name": {
+      "type": "string",
+      "description": "Full set name, e.g. 'Secrets of Strixhaven'"
+    },
+    "set_code": {
+      "type": "string",
+      "description": "3-letter set code, e.g. 'SOS'"
+    },
+    "release_window": {
+      "type": "string",
+      "description": "Release date/window, e.g. 'April 2026'"
+    },
+    "sort_order": {
+      "type": "number",
+      "description": "Chronological sort index (lower = older) for ordering sets"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "past",
+        "current",
+        "upcoming"
+      ],
+      "default": "past",
+      "description": "Whether this set is rotated/past, the current draft format, or an announced upcoming set"
+    },
+    "overview": {
+      "type": "string",
+      "description": "Markdown overview: core mechanics, draft themes, format speed, signpost cards"
+    },
+    "archetypes": {
+      "type": "array",
+      "description": "The two-color Limited archetypes / draft themes",
+      "items": {
+        "type": "object",
+        "properties": {
+          "colors": {
+            "type": "string",
+            "description": "Color pair, e.g. 'WB'"
+          },
+          "name": {
+            "type": "string",
+            "description": "Archetype name, e.g. 'Silverquill Aggro'"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "S",
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "description": "Strength tier in the format"
+          },
+          "description": {
+            "type": "string",
+            "description": "One-line how-it-works summary"
+          }
+        }
+      }
+    },
+    "cards": {
+      "type": "array",
+      "description": "Graded card database for the set",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "description": "Limited grade: A=bomb/premium, B=strong, C=playable filler, D=marginal, E=unplayable"
+          },
+          "colors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "W/U/B/R/G/C color identity"
+          },
+          "type": {
+            "type": "string",
+            "description": "Creature/Instant/Sorcery/Enchantment/Artifact/Land/Planeswalker"
+          },
+          "rarity": {
+            "type": "string",
+            "description": "common/uncommon/rare/mythic"
+          },
+          "note": {
+            "type": "string",
+            "description": "Short reason for the grade / how to use it"
+          }
+        }
+      }
+    },
+    "synergies": {
+      "type": "array",
+      "description": "Notable synergistic card combinations within the set",
+      "items": {
+        "type": "object",
+        "properties": {
+          "cards": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "explanation": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "researched_at": {
+      "type": "string",
+      "description": "ISO timestamp when this set guide was researched"
+    }
+  },
+  "required": [
+    "set_name",
+    "set_code"
+  ]
+}

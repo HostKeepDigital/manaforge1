@@ -154,20 +154,20 @@ For each card found:
       base44.integrations.Core.InvokeLLM({
         model: "claude_sonnet_4_6",
         prompt: `You are an expert MTG deck builder and competitive player.
-Given the following cards identified from an MTG Arena collection screenshot, build the BEST possible deck (60 cards for Standard, or 40 for Limited/Draft if the pool seems small).
+Given the following cards identified from an MTG Arena collection screenshot, build the BEST possible deck (60 cards for Standard, or 40-42 cards for Limited/Draft if the pool seems small — 40 is the minimum, but 41-42 is fine if an extra strong playable earns its slot).
 
 Available cards:
 ${cardListText}
 
 Build the strongest deck possible from ONLY these cards. You may include basic lands (Plains, Island, Swamp, Mountain, Forest) as needed.
 
-CRITICAL DECK COMPOSITION RULES (this is a 40-card Limited/Draft deck unless the pool is clearly a full 60-card Standard collection — default to 40):
+CRITICAL DECK COMPOSITION RULES (this is a 40-42 card Limited/Draft deck unless the pool is clearly a full 60-card Standard collection — default to 40, allow up to 42):
 
-For a 40-card Limited deck, the composition MUST be:
+For a 40-42 card Limited deck, the composition MUST be:
 - CREATURES: 14-17 creatures. This is the most important rule — Limited is won primarily through creatures/board presence. Aim for ~15-16. NEVER build a creature-light deck; if the pool is short on creatures, run the maximum available rather than padding with spells.
 - NON-CREATURE SPELLS: the remaining ~6-9 slots (removal, combat tricks, card advantage). These support the creatures, they do not replace them.
 - LANDS: 16-17 lands (17 is standard for most decks, 16 only for a low/aggressive curve). NEVER fewer than 16 and NEVER more than 18.
-- These add up to 40: e.g. 16 creatures + 7 spells + 17 lands = 40.
+- These add up to 40-42: e.g. 16 creatures + 7 spells + 17 lands = 40, or 17 creatures + 8 spells + 17 lands = 42. Keep lands at 16-17 even at 42 cards.
 
 For a 60-card Standard deck: ~24 lands (23-26), and still favor a healthy creature count for the archetype.
 
