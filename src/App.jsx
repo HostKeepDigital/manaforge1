@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import Collection from './pages/Collection';
 import DraftAssistant from './pages/DraftAssistant';
 import DeckIdeas from './pages/DeckIdeas';
+import MockDraft from './pages/MockDraft';
 import MetaTierList from './pages/MetaTierList';
 import MatchupAnalyzer from './pages/MatchupAnalyzer';
 import MyStats from './pages/MyStats';
@@ -41,6 +42,7 @@ const AuthenticatedApp = () => {
         <Route path="/collection" element={<Collection />} />
         <Route path="/draft" element={<DraftAssistant />} />
         <Route path="/ideas" element={<DeckIdeas />} />
+        <Route path="/mock-draft" element={<MockDraft />} />
         <Route path="/meta" element={<MetaTierList />} />
         <Route path="/matchups" element={<MatchupAnalyzer />} />
         <Route path="/stats" element={<MyStats />} />
