@@ -6,9 +6,101 @@ import { motion, AnimatePresence } from "framer-motion";
 import ImageUploader from "../components/deck-builder/ImageUploader";
 import CardList from "../components/deck-builder/CardList";
 import DeckSuggestion from "../components/deck-builder/DeckSuggestion";
+import DeckRefiner from "../components/deck-builder/DeckRefiner";
 import SynergyAnalysis from "../components/deck-builder/SynergyAnalysis";
 import WinRatePotential from "../components/deck-builder/WinRatePotential";
 import LoadingState from "../components/deck-builder/LoadingState";
+
+// Builds (or rebuilds) the deck from a card pool. `refinement` carries any
+// extra user ideas so the suggestion can be iterated after the first build.
+function buildDeck(cardListText, metaContext, refinement) {
+  const refinementContext = refinement
+    ? `\n\nUSER REFINEMENT — the user has reviewed the first build and wants these changes applied. Honor them while keeping the deck legal and well-constructed:\n${refinement}`
+    : "";
+
+  return base44.integrations.Core.InvokeLLM({
+    model: "claude_sonnet_4_6",
+    prompt: `You are an expert MTG deck builder and competitive player.
+Given the following cards identified from an MTG Arena collection screenshot, build the BEST possible deck (60 cards for Standard, or 40-42 cards for Limited/Draft if the pool seems small — 40 is the minimum, but 41-42 is fine if an extra strong playable earns its slot).
+
+Available cards:
+${cardListText}
+
+Build the strongest deck possible from ONLY these cards. You may include basic lands (Plains, Island, Swamp, Mountain, Forest) as needed.
+
+CRITICAL DECK COMPOSITION RULES (this is a 40-42 card Limited/Draft deck unless the pool is clearly a full 60-card Standard collection — default to 40, allow up to 42):
+
+For a 40-42 card Limited deck, the composition MUST be:
+- CREATURES: 14-17 creatures. This is the most important rule — Limited is won primarily through creatures/board presence. Aim for ~15-16. NEVER build a creature-light deck; if the pool is short on creatures, run the maximum available rather than padding with spells.
+- NON-CREATURE SPELLS: the remaining ~6-9 slots (removal, combat tricks, card advantage). These support the creatures, they do not replace them.
+- LANDS: 16-17 lands (17 is standard for most decks, 16 only for a low/aggressive curve). NEVER fewer than 16 and NEVER more than 18.
+- These add up to 40-42: e.g. 16 creatures + 7 spells + 17 lands = 40, or 17 creatures + 8 spells + 17 lands = 42. Keep lands at 16-17 even at 42 cards.
+
+For a 60-card Standard deck: ~24 lands (23-26), and still favor a healthy creature count for the archetype.
+
+PIP COUNTING — build the mana base by counting colored mana symbols (pips), NOT just by color count:
+- Go through every spell in the deck and tally the colored pips per color (e.g. a card costing 1WW = 2 white pips; count every copy).
+- Distribute the 16-17 lands proportionally to the pip totals of each color. A color with far more pips gets far more sources; a tiny splash gets only a few sources.
+- Roughly: a main color needs ~9-10 sources, a secondary color ~7-8, a light splash ~3-4. Heavy double-pip costs (e.g. WW, GG) demand MORE sources of that color.
+- Prefer two colors. Only go three colors if the pips and any fixing genuinely support it.
+
+The "cards" array MUST include the lands as entries with type "Land" and their quantities (e.g. {"name":"Plains","quantity":9,"type":"Land"}), and the basic land split MUST reflect the pip counts above. Never return a deck with zero lands, fewer than 14 creatures, or land counts outside the ranges above.
+
+Provide:
+1. A creative deck name
+2. The deck archetype (aggro, midrange, control, combo, tempo, etc.)
+3. The deck's primary colors
+4. The full deck list with quantities and card types grouped correctly
+5. The TOTAL number of lands in the deck (land_count) and a one-line explanation that states the creature count, spell count, and how the basic-land split was chosen from the colored pip counts
+6. An example GOOD opening 7-card hand: list 7 cards that represent an ideal keepable hand (right land count, castable early plays, a clear game plan) plus a one-line explanation of why it's strong
+7. An example BAD opening 7-card hand: list 7 cards that represent a hand you should mulligan (e.g. too few/too many lands, uncastable cards, no early plays) plus a one-line explanation of why it's weak
+8. A detailed strategy guide (use markdown) explaining: how to play the deck, key combos, mulligan tips, and matchup advice
+
+ARCHETYPE SYNERGY PRIORITY (very important): First determine the deck's core strategy from the available cards, then prioritize cards that actively reinforce THAT archetype's synergies, not just generically good cards:
+- AGGRO / GO-WIDE: prioritize cards that buff each other (anthem effects, +1/+1 lords, team pumps), creatures that reward attacking (raid, battle cries, "whenever this attacks" triggers, exert), and low-curve evasive threats. Pick creatures that benefit from or enable other creatures attacking.
+- MECHANIC-DRIVEN ARCHETYPES: if the pool leans on a specific keyword/mechanic (e.g. TMNT's "Sneak", ninjutsu, prowess, convoke, +1/+1 counters, sacrifice, mill, lifegain, artifacts, etc.), prioritize the cards that trigger, enable, or pay off that exact mechanic so the pieces chain together.
+- MIDRANGE/CONTROL: prioritize value creatures, efficient removal, and card-advantage engines that fit the game plan.
+Always favor a card that combos with the rest of the deck over a slightly stronger but isolated card. The goal is a cohesive, synergistic deck around its detected archetype.
+
+Focus on: a creature-centric build (14-17 creatures in 40-card Limited), a smooth low curve, card synergies, clear win conditions, a pip-weighted mana base, and 16-17 lands (never 22). Following Limited best practice taught by pros like Paul Cheon and other expert drafters: creatures win games, count your pips, and run 16-17 lands.${refinementContext}${metaContext}`,
+    response_json_schema: {
+      type: "object",
+      properties: {
+        deck_name: { type: "string" },
+        archetype: { type: "string" },
+        colors: { type: "array", items: { type: "string" } },
+        cards: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              quantity: { type: "number" },
+              type: { type: "string" },
+            },
+          },
+        },
+        land_count: { type: "number" },
+        land_count_explanation: { type: "string" },
+        good_opening_hand: {
+          type: "object",
+          properties: {
+            cards: { type: "array", items: { type: "string" } },
+            explanation: { type: "string" },
+          },
+        },
+        bad_opening_hand: {
+          type: "object",
+          properties: {
+            cards: { type: "array", items: { type: "string" } },
+            explanation: { type: "string" },
+          },
+        },
+        strategy: { type: "string" },
+      },
+    },
+  });
+}
 
 export default function Home() {
   const [imageFile, setImageFile] = useState(null);
@@ -19,7 +111,12 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState(null);
+  const [refining, setRefining] = useState(false);
   const intervalRef = useRef(null);
+
+  // Holds the card pool + meta context so the deck can be re-built when the
+  // user refines it with further ideas.
+  const buildContextRef = useRef(null);
 
   const startLoadingAnimation = () => {
     setLoadingStep(0);
@@ -149,84 +246,12 @@ For each card found:
       ? `\n\nCURRENT META KNOWLEDGE (auto-researched ${knowledge.researched_at?.split("T")[0]}, use this to stay up to date with the latest sets and strategies):\n${knowledge.summary || ""}\n${knowledge.draft_strategies || ""}\n${knowledge.pro_insights || ""}\n\nINDIVIDUAL SET BREAKDOWNS (use the relevant set's mechanics, archetypes, and key cards when building):\n${setBreakdowns}`
       : "";
 
+    // Save the build context so refinements can re-run the deck builder.
+    buildContextRef.current = { cardListText, metaContext };
+
     // Step 3: Run synergy analysis, deck building, AND win rate analysis in parallel
     const [deckResult, analysisResult, winRateResult] = await Promise.all([
-      base44.integrations.Core.InvokeLLM({
-        model: "claude_sonnet_4_6",
-        prompt: `You are an expert MTG deck builder and competitive player.
-Given the following cards identified from an MTG Arena collection screenshot, build the BEST possible deck (60 cards for Standard, or 40-42 cards for Limited/Draft if the pool seems small — 40 is the minimum, but 41-42 is fine if an extra strong playable earns its slot).
-
-Available cards:
-${cardListText}
-
-Build the strongest deck possible from ONLY these cards. You may include basic lands (Plains, Island, Swamp, Mountain, Forest) as needed.
-
-CRITICAL DECK COMPOSITION RULES (this is a 40-42 card Limited/Draft deck unless the pool is clearly a full 60-card Standard collection — default to 40, allow up to 42):
-
-For a 40-42 card Limited deck, the composition MUST be:
-- CREATURES: 14-17 creatures. This is the most important rule — Limited is won primarily through creatures/board presence. Aim for ~15-16. NEVER build a creature-light deck; if the pool is short on creatures, run the maximum available rather than padding with spells.
-- NON-CREATURE SPELLS: the remaining ~6-9 slots (removal, combat tricks, card advantage). These support the creatures, they do not replace them.
-- LANDS: 16-17 lands (17 is standard for most decks, 16 only for a low/aggressive curve). NEVER fewer than 16 and NEVER more than 18.
-- These add up to 40-42: e.g. 16 creatures + 7 spells + 17 lands = 40, or 17 creatures + 8 spells + 17 lands = 42. Keep lands at 16-17 even at 42 cards.
-
-For a 60-card Standard deck: ~24 lands (23-26), and still favor a healthy creature count for the archetype.
-
-PIP COUNTING — build the mana base by counting colored mana symbols (pips), NOT just by color count:
-- Go through every spell in the deck and tally the colored pips per color (e.g. a card costing 1WW = 2 white pips; count every copy).
-- Distribute the 16-17 lands proportionally to the pip totals of each color. A color with far more pips gets far more sources; a tiny splash gets only a few sources.
-- Roughly: a main color needs ~9-10 sources, a secondary color ~7-8, a light splash ~3-4. Heavy double-pip costs (e.g. WW, GG) demand MORE sources of that color.
-- Prefer two colors. Only go three colors if the pips and any fixing genuinely support it.
-
-The "cards" array MUST include the lands as entries with type "Land" and their quantities (e.g. {"name":"Plains","quantity":9,"type":"Land"}), and the basic land split MUST reflect the pip counts above. Never return a deck with zero lands, fewer than 14 creatures, or land counts outside the ranges above.
-
-Provide:
-1. A creative deck name
-2. The deck archetype (aggro, midrange, control, combo, tempo, etc.)
-3. The deck's primary colors
-4. The full deck list with quantities and card types grouped correctly
-5. The TOTAL number of lands in the deck (land_count) and a one-line explanation that states the creature count, spell count, and how the basic-land split was chosen from the colored pip counts
-6. An example GOOD opening 7-card hand: list 7 cards that represent an ideal keepable hand (right land count, castable early plays, a clear game plan) plus a one-line explanation of why it's strong
-7. An example BAD opening 7-card hand: list 7 cards that represent a hand you should mulligan (e.g. too few/too many lands, uncastable cards, no early plays) plus a one-line explanation of why it's weak
-8. A detailed strategy guide (use markdown) explaining: how to play the deck, key combos, mulligan tips, and matchup advice
-
-Focus on: a creature-centric build (14-17 creatures in 40-card Limited), a smooth low curve, card synergies, clear win conditions, a pip-weighted mana base, and 16-17 lands (never 22). Following Limited best practice taught by pros like Paul Cheon and other expert drafters: creatures win games, count your pips, and run 16-17 lands.${metaContext}`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            deck_name: { type: "string" },
-            archetype: { type: "string" },
-            colors: { type: "array", items: { type: "string" } },
-            cards: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  name: { type: "string" },
-                  quantity: { type: "number" },
-                  type: { type: "string" },
-                },
-              },
-            },
-            land_count: { type: "number" },
-            land_count_explanation: { type: "string" },
-            good_opening_hand: {
-              type: "object",
-              properties: {
-                cards: { type: "array", items: { type: "string" } },
-                explanation: { type: "string" },
-              },
-            },
-            bad_opening_hand: {
-              type: "object",
-              properties: {
-                cards: { type: "array", items: { type: "string" } },
-                explanation: { type: "string" },
-              },
-            },
-            strategy: { type: "string" },
-          },
-        },
-      }),
+      buildDeck(cardListText, metaContext, ""),
 
       base44.integrations.Core.InvokeLLM({
         model: "claude_sonnet_4_6",
@@ -349,6 +374,19 @@ Then give:
     stopLoadingAnimation();
   };
 
+  const refineDeck = async (refinement) => {
+    if (!refinement?.trim() || !buildContextRef.current) return;
+    setRefining(true);
+    const { cardListText, metaContext } = buildContextRef.current;
+    const result = await buildDeck(cardListText, metaContext, refinement);
+    const refined =
+      result && result.response && typeof result.response === "object"
+        ? result.response
+        : result;
+    if (refined?.cards?.length) setDeck(refined);
+    setRefining(false);
+  };
+
   const reset = () => {
     setImageFile(null);
     setCards(null);
@@ -445,6 +483,8 @@ Then give:
                   </p>
                 </div>
                 <DeckSuggestion deck={deck} />
+
+                <DeckRefiner onRefine={refineDeck} isRefining={refining} />
 
                 <div className="flex justify-center pt-4">
                   <Button
