@@ -1,11 +1,19 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Crown, Check } from "lucide-react";
+import { Crown, Link2 } from "lucide-react";
 import { GRADE_STYLES, GRADE_LABELS, manaStyle } from "./draftUtils";
 import CardPreview from "../deck-builder/CardPreview";
 
+// Color the synergy bar by strength.
+function synergyColor(score) {
+  if (score >= 70) return "bg-emerald-400";
+  if (score >= 45) return "bg-sky-400";
+  if (score >= 25) return "bg-amber-400";
+  return "bg-red-400";
+}
+
 // A single pickable card in the current pack.
-export default function DraftCard({ card, index, isBest, showBest, onPick }) {
+export default function DraftCard({ card, index, isBest, showBest, synergy, onPick }) {
   return (
     <motion.button
       initial={{ opacity: 0, y: 10 }}
@@ -48,6 +56,24 @@ export default function DraftCard({ card, index, isBest, showBest, onPick }) {
           {card.rarity || ""}
         </span>
       </div>
+      {synergy !== null && synergy !== undefined && (
+        <div className="mt-2" title={`Synergy with your picks: ${synergy}/100`}>
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+              <Link2 className="w-3 h-3" />
+              Synergy
+            </span>
+            <span className="text-[10px] font-bold text-foreground">{synergy}</span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+            <div
+              className={`h-full rounded-full ${synergyColor(synergy)}`}
+              style={{ width: `${synergy}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {card.note && (
         <p className="text-[11px] text-muted-foreground mt-2 line-clamp-2 leading-snug">
           {card.note}

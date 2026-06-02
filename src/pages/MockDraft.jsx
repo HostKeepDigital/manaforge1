@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { GraduationCap, Play, RotateCcw, Eye, EyeOff, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { buildPack, bestPickIndex } from "../components/mock-draft/draftUtils";
+import { buildPack, bestPickIndex, synergyScore } from "../components/mock-draft/draftUtils";
 import DraftCard from "../components/mock-draft/DraftCard";
 import DraftPool from "../components/mock-draft/DraftPool";
 
@@ -189,6 +189,7 @@ export default function MockDraft() {
                     index={i}
                     isBest={i === best}
                     showBest={showBest}
+                    synergy={synergyScore(card, pool)}
                     onPick={pickCard}
                   />
                 ))}

@@ -73,6 +73,60 @@ export function buildPack(cards) {
   return pack.slice(0, 15);
 }
 
+// Extract lowercase keywords/mechanics signals from a card's note + type so we
+// can reward cards that reinforce the same theme already in the pool.
+function cardSignals(card) {
+  const text = `${card.note || ""} ${card.type || ""}`.toLowerCase();
+  return text;
+}
+
+// Common Limited synergy themes to look for across the drafted pool.
+const THEMES = [
+  "vehicle", "crew", "saddle", "mount", "exhaust", "speed", "cycling",
+  "artifact", "sacrifice", "counter", "graveyard", "discard", "flying",
+  "lifelink", "token", "removal", "pirate", "engine",
+];
+
+// Rates 0-100 how well `card` works with the cards already drafted (`pool`).
+// Considers shared colors, shared mechanic themes, and curve/type balance.
+// Returns null when the pool is empty (nothing to synergize with yet).
+export function synergyScore(card, pool) {
+  if (!pool || pool.length === 0) return null;
+
+  let score = 30; // baseline
+
+  // Color overlap: cards that fit the colors you're already in are better.
+  const poolColors = new Set();
+  pool.forEach((c) => (c.colors || []).forEach((col) => poolColors.add(col)));
+  const cardColors = card.colors || [];
+  if (cardColors.length === 0) {
+    score += 15; // colorless / artifacts splash anywhere
+  } else {
+    const shared = cardColors.filter((c) => poolColors.has(c)).length;
+    const offColor = cardColors.filter((c) => !poolColors.has(c)).length;
+    score += shared * 18;
+    score -= offColor * 12;
+  }
+
+  // Theme overlap: reward shared mechanics/keywords with the pool.
+  const cardText = cardSignals(card);
+  const poolText = pool.map(cardSignals).join(" ");
+  let themeHits = 0;
+  THEMES.forEach((t) => {
+    if (cardText.includes(t) && poolText.includes(t)) themeHits += 1;
+  });
+  score += Math.min(themeHits * 10, 30);
+
+  // Type balance: nudge toward creatures when the pool is creature-light.
+  const creatures = pool.filter((c) => (c.type || "").toLowerCase() === "creature").length;
+  const creatureRatio = creatures / pool.length;
+  const isCreature = (card.type || "").toLowerCase() === "creature";
+  if (isCreature && creatureRatio < 0.55) score += 8;
+  if (!isCreature && creatureRatio < 0.4) score -= 6;
+
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
 // Returns the index of the recommended best pick (highest grade, then rarity).
 export function bestPickIndex(pack) {
   let best = 0;
