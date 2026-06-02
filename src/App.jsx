@@ -14,6 +14,7 @@ import MockDraft from './pages/MockDraft';
 import MetaTierList from './pages/MetaTierList';
 import MatchupAnalyzer from './pages/MatchupAnalyzer';
 import MyStats from './pages/MyStats';
+import Bo1DeckBuilder from './pages/Bo1DeckBuilder';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -43,6 +44,7 @@ const AuthenticatedApp = () => {
         <Route path="/draft" element={<DraftAssistant />} />
         <Route path="/ideas" element={<DeckIdeas />} />
         <Route path="/mock-draft" element={<MockDraft />} />
+        <Route path="/bo1" element={<Bo1DeckBuilder />} />
         <Route path="/meta" element={<MetaTierList />} />
         <Route path="/matchups" element={<MatchupAnalyzer />} />
         <Route path="/stats" element={<MyStats />} />

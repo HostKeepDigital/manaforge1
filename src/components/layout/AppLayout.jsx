@@ -3,11 +3,12 @@ import { Link, useLocation } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sparkles, Library, BarChart2, Swords, TrendingUp, BookOpen, Menu, X, Trophy, Lightbulb, GraduationCap
+  Sparkles, Library, BarChart2, Swords, TrendingUp, BookOpen, Menu, X, Trophy, Lightbulb, GraduationCap, Youtube
 } from "lucide-react";
 
 const NAV = [
   { path: "/", label: "Deck Builder", icon: Sparkles },
+  { path: "/bo1", label: "Bo1 Deck Builder", icon: Youtube },
   { path: "/ideas", label: "Deck Ideas", icon: Lightbulb },
   { path: "/mock-draft", label: "Mock Draft", icon: GraduationCap },
   { path: "/collection", label: "Collection", icon: Library },
