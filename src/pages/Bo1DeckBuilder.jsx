@@ -10,6 +10,7 @@ export default function Bo1DeckBuilder() {
   const [colors, setColors] = useState([]);
   const [deck, setDeck] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState("");
   const [error, setError] = useState(null);
 
   const generateDeck = async () => {
@@ -17,15 +18,17 @@ export default function Bo1DeckBuilder() {
     setLoading(true);
     setError(null);
     setDeck(null);
+    setStatus("Analyzing the current meta & generating deck...");
 
     const colorContext = `The deck's color identity MUST be limited to ONLY these colors: ${colors.join(
       ", "
     )}. Do not include cards of any other color. Only include off-color lands if absolutely necessary for mana fixing.`;
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      model: "claude_sonnet_4_6",
-      add_context_from_internet: true,
-      prompt: `You are an expert Magic: The Gathering deck builder, content creator, and metagame analyst.
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        model: "gemini_3_1_pro",
+        add_context_from_internet: true,
+        prompt: `You are an expert Magic: The Gathering deck builder, content creator, and metagame analyst.
 
 Your task is to create a unique, 60-card, CURRENTLY STANDARD-LEGAL Constructed deck designed specifically for YouTube content.
 
@@ -115,13 +118,28 @@ Use only real, currently-Standard-legal card names.`,
       },
     });
 
-    const data = result?.response && typeof result.response === "object" ? result.response : result;
-    if (!data?.cards?.length) {
-      setError("Could not generate a deck. Please try again.");
-    } else {
+      // Harden parsing: response may be an object, or a string with markdown fences.
+      let data = result?.response !== undefined ? result.response : result;
+      if (typeof data === "string") {
+        const cleaned = data.replace(/```json/gi, "").replace(/```/g, "").trim();
+        try {
+          data = JSON.parse(cleaned);
+        } catch {
+          throw new Error("AI returned malformed data, please regenerate.");
+        }
+      }
+
+      if (!data || typeof data !== "object" || !Array.isArray(data.cards) || !data.cards.length) {
+        throw new Error("AI returned malformed data, please regenerate.");
+      }
+
       setDeck(data);
+    } catch (err) {
+      setError(err?.message || "Something went wrong generating the deck. Please try again.");
+    } finally {
+      setStatus("");
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -166,7 +184,7 @@ Use only real, currently-Standard-legal card names.`,
           <div className="flex flex-col items-center gap-4 py-12">
             <Loader2 className="w-10 h-10 text-primary animate-spin" />
             <p className="font-body text-muted-foreground text-center">
-              Brewing a spicy, original Standard-legal Bo1 deck...
+              {status || "Brewing a spicy, original Standard-legal Bo1 deck..."}
             </p>
           </div>
         )}
