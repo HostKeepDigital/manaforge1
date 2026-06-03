@@ -161,10 +161,10 @@ Use only real card names.`,
         >
           <h1 className="font-heading text-4xl sm:text-5xl text-foreground tracking-tight flex items-center justify-center gap-3">
             <Youtube className="w-9 h-9 text-primary" />
-            Bo1 Deck Builder
+            Daily Spice Rack
           </h1>
           <p className="font-body text-muted-foreground text-lg mt-4 max-w-xl mx-auto">
-            Your daily deck concept. Pick a set and colors, and AI brews one original, YouTube-worthy Bo1 Standard deck.
+            Your daily off-meta Standard brew. Pick your colors and AI cooks up one original, YouTube-worthy deck.
           </p>
         </motion.div>
 

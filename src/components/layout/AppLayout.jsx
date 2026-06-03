@@ -8,7 +8,7 @@ import {
 
 const NAV = [
   { path: "/", label: "Deck Builder", icon: Sparkles },
-  { path: "/bo1", label: "Bo1 Deck Builder", icon: Youtube },
+  { path: "/bo1", label: "Daily Spice Rack", icon: Youtube },
   { path: "/ideas", label: "Deck Ideas", icon: Lightbulb },
   { path: "/mock-draft", label: "Mock Draft", icon: GraduationCap },
   { path: "/collection", label: "Collection", icon: Library },
