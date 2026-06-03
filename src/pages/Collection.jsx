@@ -3,9 +3,52 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
-import { Library, Upload, Trash2, ChevronDown, ChevronUp, Sparkles, Plus } from "lucide-react";
-import ImageUploader from "../components/deck-builder/ImageUploader";
+import { Library, Trash2, ChevronDown, ChevronUp, Sparkles, Plus, Loader2 } from "lucide-react";
+import MultiImageUploader from "../components/collection/MultiImageUploader";
 import { toast } from "sonner";
+
+// Scan a single screenshot into a card array.
+async function scanScreenshot(file) {
+  const { file_url } = await base44.integrations.Core.UploadFile({ file });
+  const result = await base44.integrations.Core.InvokeLLM({
+    model: "claude_sonnet_4_6",
+    prompt: `Identify ALL Magic: The Gathering cards visible in this MTG Arena screenshot. For each card provide: exact name, colors (W/U/B/R/G/C), type (Creature/Instant/Sorcery/Enchantment/Artifact/Planeswalker/Land), quantity, and mana_cost.`,
+    file_urls: [file_url],
+    response_json_schema: {
+      type: "object",
+      properties: {
+        cards: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              colors: { type: "array", items: { type: "string" } },
+              type: { type: "string" },
+              quantity: { type: "number" },
+              mana_cost: { type: "string" },
+            },
+          },
+        },
+      },
+    },
+  });
+  return { cards: result?.cards || [], file_url };
+}
+
+// Merge duplicate card names, keeping the highest seen quantity.
+function mergeCards(cardLists) {
+  const map = new Map();
+  cardLists.flat().forEach((c) => {
+    if (!c?.name) return;
+    const key = c.name.trim();
+    const qty = Number(c.quantity) || 1;
+    const existing = map.get(key);
+    if (existing) existing.quantity = Math.max(existing.quantity, qty);
+    else map.set(key, { ...c, name: key, quantity: qty });
+  });
+  return [...map.values()];
+}
 
 function CollectionEntry({ entry, onDelete }) {
   const [open, setOpen] = useState(false);
@@ -61,8 +104,9 @@ function CollectionEntry({ entry, onDelete }) {
 export default function CollectionPage() {
   const [entries, setEntries] = useState([]);
   const [showUpload, setShowUpload] = useState(false);
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);
   const [scanning, setScanning] = useState(false);
+  const [progress, setProgress] = useState("");
   const [labelInput, setLabelInput] = useState("");
 
   const load = async () => {
@@ -73,46 +117,40 @@ export default function CollectionPage() {
   useEffect(() => { load(); }, []);
 
   const handleScan = async () => {
-    if (!imageFile) return;
+    if (!imageFiles.length) return;
     setScanning(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file: imageFile });
-    const result = await base44.integrations.Core.InvokeLLM({
-      model: "claude_sonnet_4_6",
-      prompt: `Identify ALL Magic: The Gathering cards visible in this MTG Arena screenshot. For each card provide: exact name, colors (W/U/B/R/G/C), type (Creature/Instant/Sorcery/Enchantment/Artifact/Planeswalker/Land), quantity, and mana_cost.`,
-      file_urls: [file_url],
-      response_json_schema: {
-        type: "object",
-        properties: {
-          cards: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                name: { type: "string" },
-                colors: { type: "array", items: { type: "string" } },
-                type: { type: "string" },
-                quantity: { type: "number" },
-                mana_cost: { type: "string" },
-              },
-            },
-          },
-        },
-      },
-    });
+    setProgress("");
+    try {
+      const cardLists = [];
+      let firstUrl = null;
+      for (let i = 0; i < imageFiles.length; i++) {
+        setProgress(`Scanning screenshot ${i + 1} of ${imageFiles.length}...`);
+        const { cards, file_url } = await scanScreenshot(imageFiles[i]);
+        if (!firstUrl) firstUrl = file_url;
+        cardLists.push(cards);
+      }
 
-    await base44.entities.Collection.create({
-      screenshot_url: file_url,
-      cards: result.cards || [],
-      uploaded_at: new Date().toISOString(),
-      label: labelInput || `Collection ${new Date().toLocaleDateString()}`,
-    });
+      const merged = mergeCards(cardLists);
+      setProgress("Saving to your collection...");
 
-    toast.success(`Added ${result.cards?.length || 0} cards to your collection!`);
-    setScanning(false);
-    setShowUpload(false);
-    setImageFile(null);
-    setLabelInput("");
-    load();
+      await base44.entities.Collection.create({
+        screenshot_url: firstUrl,
+        cards: merged,
+        uploaded_at: new Date().toISOString(),
+        label: labelInput || `Collection ${new Date().toLocaleDateString()}`,
+      });
+
+      toast.success(`Added ${merged.length} unique cards from ${imageFiles.length} screenshot(s)!`);
+      setShowUpload(false);
+      setImageFiles([]);
+      setLabelInput("");
+      load();
+    } catch (err) {
+      toast.error(err?.message || "Failed to scan screenshots. Please try again.");
+    } finally {
+      setScanning(false);
+      setProgress("");
+    }
   };
 
   const handleDelete = async (id) => {
@@ -157,11 +195,11 @@ export default function CollectionPage() {
                 onChange={e => setLabelInput(e.target.value)}
                 className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               />
-              <ImageUploader onImageSelected={setImageFile} isProcessing={scanning} />
-              {imageFile && (
+              <MultiImageUploader files={imageFiles} onChange={setImageFiles} disabled={scanning} />
+              {imageFiles.length > 0 && (
                 <Button onClick={handleScan} disabled={scanning} className="w-full gap-2 font-body">
-                  <Sparkles className="w-4 h-4" />
-                  {scanning ? "Scanning Cards..." : "Scan & Save"}
+                  {scanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  {scanning ? (progress || "Scanning Cards...") : `Scan & Save ${imageFiles.length} Screenshot${imageFiles.length > 1 ? "s" : ""}`}
                 </Button>
               )}
             </motion.div>
