@@ -15,6 +15,7 @@ import MetaTierList from './pages/MetaTierList';
 import MatchupAnalyzer from './pages/MatchupAnalyzer';
 import MyStats from './pages/MyStats';
 import Bo1DeckBuilder from './pages/Bo1DeckBuilder';
+import SpiceHistory from './pages/SpiceHistory';
 import AdminSets from './pages/AdminSets';
 
 const AuthenticatedApp = () => {
@@ -46,6 +47,7 @@ const AuthenticatedApp = () => {
         <Route path="/ideas" element={<DeckIdeas />} />
         <Route path="/mock-draft" element={<MockDraft />} />
         <Route path="/bo1" element={<Bo1DeckBuilder />} />
+        <Route path="/spice-history" element={<SpiceHistory />} />
         <Route path="/meta" element={<MetaTierList />} />
         <Route path="/matchups" element={<MatchupAnalyzer />} />
         <Route path="/stats" element={<MyStats />} />

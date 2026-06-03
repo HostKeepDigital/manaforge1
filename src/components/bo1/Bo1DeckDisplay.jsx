@@ -57,7 +57,7 @@ function DeckSection({ type, cards }) {
   );
 }
 
-export default function Bo1DeckDisplay({ deck }) {
+export default function Bo1DeckDisplay({ deck, mtgaString }) {
   if (!deck) return null;
 
   const total = (deck.cards || []).reduce((s, c) => s + (c.quantity || 1), 0);
@@ -71,7 +71,7 @@ export default function Bo1DeckDisplay({ deck }) {
   const orderedTypes = [...TYPE_ORDER.filter((t) => grouped[t]), ...(grouped.Other ? ["Other"] : [])];
 
   const copyDecklist = () => {
-    navigator.clipboard.writeText(toMtgaFormat(deck.cards));
+    navigator.clipboard.writeText(mtgaString || toMtgaFormat(deck.cards));
     toast.success("Decklist copied in MTGA format!");
   };
 

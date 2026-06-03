@@ -1,0 +1,118 @@
+{
+  "name": "SavedDeck",
+  "type": "object",
+  "properties": {
+    "deck_name": {
+      "type": "string",
+      "description": "The YouTube-friendly deck name"
+    },
+    "youtube_description": {
+      "type": "string",
+      "description": "Short description suitable for a video description"
+    },
+    "category": {
+      "type": "string",
+      "description": "The randomly selected content-creator category, e.g. 'Anti-Meta Innovation'"
+    },
+    "category_reasoning": {
+      "type": "string",
+      "description": "Why that category was chosen for the current meta"
+    },
+    "colors": {
+      "type": "array",
+      "description": "Selected colour identity for the deck, e.g. ['B','G']",
+      "items": {
+        "type": "string"
+      }
+    },
+    "strategy": {
+      "type": "string",
+      "description": "Core strategy explanation"
+    },
+    "key_interactions": {
+      "type": "array",
+      "description": "List of key card interactions",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mana_curve": {
+      "type": "object",
+      "description": "Mana curve breakdown by CMC bucket",
+      "properties": {
+        "1": {
+          "type": "number"
+        },
+        "2": {
+          "type": "number"
+        },
+        "3": {
+          "type": "number"
+        },
+        "4": {
+          "type": "number"
+        },
+        "5": {
+          "type": "number"
+        },
+        "6plus": {
+          "type": "number"
+        }
+      }
+    },
+    "decklist": {
+      "type": "array",
+      "description": "The 60-card decklist",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ratings": {
+      "type": "object",
+      "description": "Deck ratings out of 10",
+      "properties": {
+        "competitiveness": {
+          "type": "number"
+        },
+        "entertainment": {
+          "type": "number"
+        },
+        "surprise": {
+          "type": "number"
+        }
+      }
+    },
+    "mtga_decklist": {
+      "type": "string",
+      "description": "The decklist in MTGA import format (quantity + name per line)"
+    },
+    "verified_legal": {
+      "type": "boolean",
+      "description": "Whether the deck passed Scryfall Standard legality validation",
+      "default": false
+    },
+    "favorite": {
+      "type": "boolean",
+      "description": "Whether the user has starred this deck as a favourite",
+      "default": false
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "ISO timestamp when the deck was generated"
+    }
+  },
+  "required": [
+    "deck_name"
+  ]
+}

@@ -5,6 +5,7 @@ import { Sparkles, Youtube, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import ColorMultiSelect from "../components/bo1/ColorMultiSelect";
 import Bo1DeckDisplay from "../components/bo1/Bo1DeckDisplay";
+import { validateStandardLegality, toSavedDeck } from "@/lib/deckUtils";
 
 export default function Bo1DeckBuilder() {
   const [colors, setColors] = useState([]);
@@ -165,6 +166,17 @@ Use only real card names that appear in the player's owned collection (or basic 
       }
 
       setDeck(data);
+
+      // Validate Standard legality, and auto-save to history only if 100% legal.
+      setStatus("Verifying Standard legality...");
+      try {
+        const { legal } = await validateStandardLegality(data.cards);
+        if (legal) {
+          await base44.entities.SavedDeck.create(toSavedDeck(data, colors));
+        }
+      } catch {
+        // If validation/save fails, keep showing the deck without saving.
+      }
     } catch (err) {
       setError(err?.message || "Something went wrong generating the deck. Please try again.");
     } finally {

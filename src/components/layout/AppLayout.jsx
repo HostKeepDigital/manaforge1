@@ -3,12 +3,13 @@ import { Link, useLocation } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sparkles, Library, BarChart2, Swords, TrendingUp, BookOpen, Menu, X, Trophy, Lightbulb, GraduationCap, Youtube, Settings
+  Sparkles, Library, BarChart2, Swords, TrendingUp, BookOpen, Menu, X, Trophy, Lightbulb, GraduationCap, Youtube, Settings, History
 } from "lucide-react";
 
 const NAV = [
   { path: "/", label: "Deck Builder", icon: Sparkles },
   { path: "/bo1", label: "Daily Spice Rack", icon: Youtube },
+  { path: "/spice-history", label: "Spice History", icon: History },
   { path: "/ideas", label: "Deck Ideas", icon: Lightbulb },
   { path: "/mock-draft", label: "Mock Draft", icon: GraduationCap },
   { path: "/collection", label: "Collection", icon: Library },
