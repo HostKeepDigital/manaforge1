@@ -27,8 +27,9 @@ export default function MockDraft() {
   useEffect(() => {
     (async () => {
       const records = await base44.entities.SetGuide.list("sort_order", 100);
-      // Only sets that actually have graded cards can be drafted.
-      const drafted = (records || []).filter((s) => (s.cards || []).length >= 15);
+      // Hide unreleased/future sets (status "upcoming"), then only sets with enough graded cards can be drafted.
+      const released = (records || []).filter((s) => s.status !== "upcoming");
+      const drafted = released.filter((s) => (s.cards || []).length >= 15);
       setSets(drafted);
       if (drafted[0]) setSelectedSetId(drafted[0].id);
       setLoadingSets(false);

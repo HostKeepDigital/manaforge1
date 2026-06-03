@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sparkles, Library, BarChart2, Swords, TrendingUp, BookOpen, Menu, X, Trophy, Lightbulb, GraduationCap, Youtube
+  Sparkles, Library, BarChart2, Swords, TrendingUp, BookOpen, Menu, X, Trophy, Lightbulb, GraduationCap, Youtube, Settings
 } from "lucide-react";
 
 const NAV = [
@@ -16,6 +16,7 @@ const NAV = [
   { path: "/meta", label: "Meta Tier List", icon: TrendingUp },
   { path: "/matchups", label: "Matchup Analyzer", icon: Swords },
   { path: "/stats", label: "My Stats", icon: BarChart2 },
+  { path: "/admin/sets", label: "Manage Sets", icon: Settings },
 ];
 
 export default function AppLayout() {

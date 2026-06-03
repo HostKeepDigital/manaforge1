@@ -15,6 +15,7 @@ import MetaTierList from './pages/MetaTierList';
 import MatchupAnalyzer from './pages/MatchupAnalyzer';
 import MyStats from './pages/MyStats';
 import Bo1DeckBuilder from './pages/Bo1DeckBuilder';
+import AdminSets from './pages/AdminSets';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,6 +49,7 @@ const AuthenticatedApp = () => {
         <Route path="/meta" element={<MetaTierList />} />
         <Route path="/matchups" element={<MatchupAnalyzer />} />
         <Route path="/stats" element={<MyStats />} />
+        <Route path="/admin/sets" element={<AdminSets />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
