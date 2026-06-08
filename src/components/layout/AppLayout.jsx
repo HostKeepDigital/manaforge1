@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sparkles, Library, BarChart2, Swords, TrendingUp, BookOpen, Menu, X, Trophy, Lightbulb, GraduationCap, Youtube, Settings, History
+  Sparkles, Library, BarChart2, Swords, TrendingUp, BookOpen, Menu, X, Trophy, Lightbulb, GraduationCap, Youtube, Settings, History, PanelLeftClose, PanelLeftOpen
 } from "lucide-react";
 
 const NAV = [
@@ -23,30 +23,42 @@ const NAV = [
 export default function AppLayout() {
   const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar — desktop */}
-      <aside className="hidden lg:flex flex-col w-56 shrink-0 border-r border-border bg-sidebar sticky top-0 h-screen overflow-y-auto">
-        <div className="px-5 py-6 border-b border-border">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-primary" />
-            <span className="font-heading text-lg text-foreground">ArenaCraft</span>
-          </div>
+      <aside className={`hidden lg:flex flex-col shrink-0 border-r border-border bg-sidebar sticky top-0 h-screen overflow-y-auto transition-all duration-200 ${collapsed ? "w-16" : "w-56"}`}>
+        <div className={`py-6 border-b border-border flex items-center ${collapsed ? "justify-center px-2" : "justify-between px-5"}`}>
+          {!collapsed && (
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-primary" />
+              <span className="font-heading text-lg text-foreground">ArenaCraft</span>
+            </div>
+          )}
+          <button
+            onClick={() => setCollapsed((v) => !v)}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            title={collapsed ? "Expand menu" : "Collapse menu"}
+          >
+            {collapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+          </button>
         </div>
         <nav className="flex-1 py-4 px-3 space-y-1">
           {NAV.map(({ path, label, icon: Icon }) => (
             <Link
               key={path}
               to={path}
+              title={collapsed ? label : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-body transition-all
+                ${collapsed ? "justify-center" : ""}
                 ${pathname === path
                   ? "bg-primary/15 text-primary font-semibold"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                 }`}
             >
               <Icon className="w-4 h-4 shrink-0" />
-              {label}
+              {!collapsed && label}
             </Link>
           ))}
         </nav>
