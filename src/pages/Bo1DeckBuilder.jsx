@@ -142,15 +142,23 @@ Use only real card names that are currently legal in Standard (or basic lands).`
 
       setDeck(data);
 
-      // Validate Standard legality, and auto-save to history only if 100% legal.
-      setStatus("Verifying Standard legality...");
+      // Validate Standard legality, then always save the brew to history,
+      // recording whether it passed verification.
+      setStatus("Verifying Standard legality & saving...");
+      let legal = false;
       try {
-        const { legal } = await validateStandardLegality(data.cards);
-        if (legal) {
-          await base44.entities.SavedDeck.create(toSavedDeck(data, colors));
-        }
+        ({ legal } = await validateStandardLegality(data.cards));
       } catch {
-        // If validation/save fails, keep showing the deck without saving.
+        // If Scryfall is unreachable, still save the deck (unverified).
+        legal = false;
+      }
+      try {
+        await base44.entities.SavedDeck.create({
+          ...toSavedDeck(data, colors),
+          verified_legal: legal,
+        });
+      } catch {
+        // If the save fails, keep showing the deck.
       }
     } catch (err) {
       setError(err?.message || "Something went wrong generating the deck. Please try again.");
