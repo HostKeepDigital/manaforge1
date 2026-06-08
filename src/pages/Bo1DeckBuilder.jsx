@@ -49,7 +49,7 @@ Requirements:
 - Clear win condition and internal synergy. It should realistically win games, not just be a meme deck.
 - Avoid obvious netdecks. Prioritize interesting, entertaining interactions for YouTube viewers.
 - The main deck MUST contain EXACTLY 60 cards total. The sum of all "quantity" values across every entry in the cards array MUST equal exactly 60 — no more, no less. This is mandatory. Include enough lands (typically 22-25) and spells so the quantities add up to 60. Do not stop early or summarize; list every card with its full quantity.
-- Rate the deck on Competitiveness (1-10), Entertainment Value (1-10), Surprise Factor (1-10).
+- Rate the deck HONESTLY and SPECIFICALLY on Competitiveness (1-10), Entertainment Value (1-10), Surprise Factor (1-10). These scores MUST genuinely reflect THIS specific deck — do NOT default to similar or generic high numbers every time. Judge critically: a janky off-meta brew should usually score lower on Competitiveness than a tuned synergy deck; a straightforward deck should score lower on Surprise Factor than a true "this shouldn't work" build. Use the full 1-10 range and vary the three scores from each other where appropriate based on the deck's actual strengths and weaknesses.
 
 Content Creator Mode — randomly select ONE concept category and briefly explain why it has potential in the current meta:
 1. Meta Fusion  2. Forgotten Card Revival  3. Anti-Meta Innovation  4. Synergy Over Power
@@ -69,7 +69,7 @@ OUTPUT FORMAT:
 - mana_curve: object mapping mana value to the number of NON-LAND cards at that cost, keys "0","1","2","3","4","5","6","7+".
 - strategy: markdown explaining the core strategy and win condition.
 - key_interactions: markdown explaining the key card interactions and why the deck can compete with the current meta.
-- ratings: object with integer fields competitiveness, entertainment_value, surprise_factor (each 1-10).
+- ratings: object with integer fields competitiveness, entertainment_value, surprise_factor (each 1-10), reflecting this specific deck's real strengths/weaknesses — not generic numbers.
 
 Use only real card names that are currently legal in Standard (or basic lands).`,
       response_json_schema: {
