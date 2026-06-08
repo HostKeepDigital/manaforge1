@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Youtube, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import ColorMultiSelect from "../components/bo1/ColorMultiSelect";
 import Bo1DeckDisplay from "../components/bo1/Bo1DeckDisplay";
 import { validateStandardLegality, toSavedDeck } from "@/lib/deckUtils";
@@ -157,8 +158,9 @@ Use only real card names that are currently legal in Standard (or basic lands).`
           ...toSavedDeck(data, colors),
           verified_legal: legal,
         });
-      } catch {
-        // If the save fails, keep showing the deck.
+        toast.success("Brew saved to Spice History!");
+      } catch (saveErr) {
+        toast.error("Couldn't save this brew to history: " + (saveErr?.message || "unknown error"));
       }
     } catch (err) {
       setError(err?.message || "Something went wrong generating the deck. Please try again.");
