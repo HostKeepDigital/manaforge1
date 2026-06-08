@@ -19,42 +19,13 @@ export default function Bo1DeckBuilder() {
     setLoading(true);
     setError(null);
     setDeck(null);
-    setStatus("Reading your collection...");
+    setStatus("Brewing a spicy Standard deck...");
 
     const colorContext = `The deck's color identity MUST be limited to ONLY these colors: ${colors.join(
       ", "
     )}. Do not include cards of any other color. Only include off-color lands if absolutely necessary for mana fixing.`;
 
     try {
-      // Build a strict owned-card pool from the user's saved Collection.
-      const collections = await base44.entities.Collection.list("-uploaded_at");
-      const ownedMap = new Map();
-      collections.forEach((entry) => {
-        (entry.cards || []).forEach((c) => {
-          if (!c?.name) return;
-          const key = c.name.trim();
-          const qty = Number(c.quantity) || 1;
-          ownedMap.set(key, Math.max(ownedMap.get(key) || 0, qty));
-        });
-      });
-
-      if (ownedMap.size === 0) {
-        throw new Error(
-          "Your collection is empty. Go to 'My Collection' and upload screenshots of your cards first."
-        );
-      }
-
-      const ownedList = [...ownedMap.entries()]
-        .map(([name, qty]) => `${qty}x ${name}`)
-        .join("\n");
-
-      const collectionContext = `STRICT COLLECTION CONSTRAINT (most important rule):
-You may ONLY use cards from the player's owned collection below. Do NOT use ANY card that is not in this list. Never exceed the owned quantity of a card (and never more than 4 copies of a non-basic card). Basic lands (Plains, Island, Swamp, Mountain, Forest) are always available in unlimited quantity even if not listed. If you cannot build a complete, reasonable 60-card deck in the chosen colors from this collection, say so by returning fewer cards is NOT allowed — instead build the best possible legal deck using only these owned cards plus basic lands.
-
-PLAYER'S OWNED CARDS:
-${ownedList}`;
-
-      setStatus("Brewing a deck from your cards...");
       const result = await base44.integrations.Core.InvokeLLM({
         model: "gemini_3_1_pro",
         add_context_from_internet: true,
@@ -62,13 +33,10 @@ ${ownedList}`;
 
 Your task is to create a unique, 60-card, CURRENTLY STANDARD-LEGAL Constructed deck designed specifically for YouTube content.
 
-${collectionContext}
-
 LEGALITY (critical):
 - The deck must be 100% legal in the CURRENT MTG Arena Standard format as of ${new Date().toLocaleDateString()}.
-- Use ONLY cards that are currently Standard-legal (not rotated out, not from non-Standard sets).
+- You may use ANY card that is currently Standard-legal (not rotated out, not from non-Standard sets).
 - Do NOT include any card that is currently banned in Standard. Double-check the current Standard ban list before finalizing.
-- Build ONLY from the player's owned cards listed above (plus basic lands).
 
 COLOR CONSTRAINT:
 - ${colorContext}
@@ -102,7 +70,7 @@ OUTPUT FORMAT:
 - key_interactions: markdown explaining the key card interactions and why the deck can compete with the current meta.
 - ratings: object with integer fields competitiveness, entertainment_value, surprise_factor (each 1-10).
 
-Use only real card names that appear in the player's owned collection (or basic lands).`,
+Use only real card names that are currently legal in Standard (or basic lands).`,
       response_json_schema: {
         type: "object",
         properties: {
@@ -203,7 +171,7 @@ Use only real card names that appear in the player's owned collection (or basic 
             Daily Spice Rack
           </h1>
           <p className="font-body text-muted-foreground text-lg mt-4 max-w-xl mx-auto">
-            Your daily off-meta Standard brew. Pick your colors and AI cooks up one original, YouTube-worthy deck using only the cards in your collection.
+            Your daily off-meta Standard brew. Pick your colors and AI cooks up one original, YouTube-worthy deck from the entire current Standard card pool.
           </p>
         </motion.div>
 
