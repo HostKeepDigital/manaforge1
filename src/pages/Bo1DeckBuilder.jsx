@@ -47,7 +47,7 @@ Requirements:
 - Combine successful mechanics and synergies from multiple meta decks into something original.
 - Clear win condition and internal synergy. It should realistically win games, not just be a meme deck.
 - Avoid obvious netdecks. Prioritize interesting, entertaining interactions for YouTube viewers.
-- Exactly 60 cards in the main deck with a mana curve breakdown.
+- The main deck MUST contain EXACTLY 60 cards total. The sum of all "quantity" values across every entry in the cards array MUST equal exactly 60 — no more, no less. This is mandatory. Include enough lands (typically 22-25) and spells so the quantities add up to 60. Do not stop early or summarize; list every card with its full quantity.
 - Rate the deck on Competitiveness (1-10), Entertainment Value (1-10), Surprise Factor (1-10).
 
 Content Creator Mode — randomly select ONE concept category and briefly explain why it has potential in the current meta:
@@ -131,6 +131,13 @@ Use only real card names that are currently legal in Standard (or basic lands).`
 
       if (!data || typeof data !== "object" || !Array.isArray(data.cards) || !data.cards.length) {
         throw new Error("AI returned malformed data, please regenerate.");
+      }
+
+      const totalCards = data.cards.reduce((sum, c) => sum + (Number(c.quantity) || 0), 0);
+      if (totalCards < 60) {
+        throw new Error(
+          `The AI only built ${totalCards} cards instead of 60. Please hit Generate Deck again.`
+        );
       }
 
       setDeck(data);
