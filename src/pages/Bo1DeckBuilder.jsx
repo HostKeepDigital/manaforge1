@@ -70,6 +70,10 @@ ${m.summary || "(n/a)"}`;
 - In key_interactions, go archetype-by-archetype: name each top meta deck and list exactly which of your cards beat it and how (must be literally true under current rules).
 - Competitiveness rating should be high only if it genuinely dismantles the current top decks.`;
 
+    // Extra instruction injected on retries, listing the exact cards Scryfall
+    // rejected so the AI rebuilds without them.
+    let legalityFixContext = "";
+
     const modeContext =
       mode === "metaSniper"
         ? metaSniperContext
@@ -87,7 +91,8 @@ ${m.summary || "(n/a)"}`;
 - It MUST still be genuinely strong: use the best available cards for the theme, keep a clean curve, and include a real, FUNCTIONAL engine/combo (verify it actually works with real legal cards). No win-more filler, no cards that are just bad.
 - It should realistically beat real meta decks, not just be a meme. Flavor and surprise matter, but never at the cost of the deck actually working.`;
 
-    try {
+    // Generate one deck and run all structural validation. Returns a clean deck object.
+    const generateOnce = async () => {
       const result = await base44.integrations.Core.InvokeLLM({
         model: "gemini_3_1_pro",
         add_context_from_internet: true,
@@ -99,6 +104,7 @@ LEGALITY (critical):
 - The deck must be 100% legal in the CURRENT MTG Arena Standard format as of ${new Date().toLocaleDateString()}.
 - You may use ANY card that is currently Standard-legal (not rotated out, not from non-Standard sets).
 - Do NOT include any card that is currently banned in Standard. Double-check the current Standard ban list before finalizing.
+- Every card name you output MUST be the EXACT, real Oracle name of a card that currently exists and is Standard-legal. Do NOT invent card names, do NOT use rotated cards, and do NOT misremember names. If unsure whether a card is legal, do not include it.${legalityFixContext}
 
 COLOR CONSTRAINT:
 - ${colorContext}
@@ -235,24 +241,68 @@ Use only real card names that are currently legal in Standard (or basic lands).`
         );
       }
 
+      return data;
+    };
+
+    try {
+      // Generate, verify every card against Scryfall, and if any card is
+      // banned/rotated/illegal, re-roll the deck telling the AI exactly which
+      // cards to drop. Only a fully legal deck is ever shown or saved.
+      const MAX_ATTEMPTS = 3;
+      let data = null;
+      let illegal = [];
+
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        setStatus(
+          attempt === 1
+            ? status || "Brewing your deck..."
+            : `Some cards weren't Standard-legal — rebuilding the deck (attempt ${attempt}/${MAX_ATTEMPTS})...`
+        );
+        data = await generateOnce();
+
+        setStatus("Verifying every card is Standard-legal via Scryfall...");
+        let result;
+        try {
+          result = await validateStandardLegality(data.cards);
+        } catch {
+          // Scryfall unreachable — we cannot verify legality, so stop and warn
+          // rather than risk showing an illegal deck.
+          throw new Error(
+            "Couldn't reach Scryfall to verify card legality. Please try again in a moment."
+          );
+        }
+
+        if (result.legal) {
+          illegal = [];
+          break;
+        }
+
+        illegal = result.illegal;
+        // Feed the rejected cards back into the next prompt attempt.
+        legalityFixContext = `\n- CRITICAL FIX: your previous attempt included cards that are NOT currently Standard-legal (banned, rotated out, or not real). You MUST NOT use any of these cards again: ${illegal.join(
+          ", "
+        )}. Replace them with real, currently Standard-legal alternatives.`;
+        data = null;
+      }
+
+      if (!data) {
+        throw new Error(
+          `The AI kept including cards that aren't Standard-legal (e.g. ${illegal
+            .slice(0, 4)
+            .join(", ")}). Please try again or pick different colors.`
+        );
+      }
+
       setDeck(data);
 
-      // Validate Standard legality, then always save the brew to history,
-      // recording whether it passed verification.
-      setStatus("Verifying Standard legality & saving...");
-      let legal = false;
-      try {
-        ({ legal } = await validateStandardLegality(data.cards));
-      } catch {
-        // If Scryfall is unreachable, still save the deck (unverified).
-        legal = false;
-      }
+      // Deck is verified legal — save it to history.
+      setStatus("Saving your verified deck...");
       try {
         await base44.entities.SavedDeck.create({
           ...toSavedDeck(data, colors),
-          verified_legal: legal,
+          verified_legal: true,
         });
-        toast.success("Brew saved to Spice History!");
+        toast.success("Verified Standard-legal brew saved to Spice History!");
       } catch (saveErr) {
         toast.error("Couldn't save this brew to history: " + (saveErr?.message || "unknown error"));
       }
