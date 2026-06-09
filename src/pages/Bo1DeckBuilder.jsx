@@ -30,19 +30,49 @@ export default function Bo1DeckBuilder() {
       ", "
     )}. Do not include cards of any other color. Only include off-color lands if absolutely necessary for mana fixing.`;
 
+    // Pull the freshest live Standard meta snapshot so brews are grounded in the
+    // actual current metagame (top decks, win rates, what to beat) instead of guesses.
+    let metaContext = "";
+    try {
+      const snaps = await base44.entities.MetaKnowledge.filter(
+        { format: "Standard" },
+        "-researched_at",
+        1
+      );
+      const m = snaps?.[0];
+      if (m) {
+        metaContext = `LIVE CURRENT STANDARD META SNAPSHOT (researched ${m.researched_at?.slice(0, 10) || "recently"} from MTGDecks, MTGTop8 & MTGGoldfish) — build WITH this, do not contradict it:
+
+TOP ARCHETYPES:
+${m.top_archetypes || "(n/a)"}
+
+FORMAT SHAPE / WHAT TO TARGET:
+${m.draft_strategies || "(n/a)"}
+
+PRO INSIGHTS & SLEEPERS:
+${m.pro_insights || "(n/a)"}
+
+SUMMARY:
+${m.summary || "(n/a)"}`;
+      }
+    } catch (_e) {
+      metaContext = "";
+    }
+
     const modeContext =
       mode === "competitive"
-        ? `MODE: SPICY COMPETITIVE.
-- This deck must be genuinely COMPETITIVE and tournament-viable, while still being off-meta (NOT a known tier 1/tier 2 netdeck).
-- First, deeply analyze the CURRENT Standard metagame: identify the top 3-5 most-played archetypes right now and their key threats, removal, and weaknesses.
-- Then build a deck that is specifically designed to COUNTER and prey on that meta — include targeted answers (removal, hate cards, sideboard-style maindeck tech, resilience) to the dominant strategies, but package it inside an original game plan with its own win condition.
-- Prioritize power, consistency, and a strong mana base over novelty. It should realistically climb ranked ladder and beat the meta, not just surprise people.
-- In key_interactions, explicitly explain WHICH meta decks this beats and HOW (which cards answer which threats).
-- Competitiveness rating should be high ONLY if the deck genuinely earns it.`
-        : `MODE: SPICY FUN.
-- This deck should be creative, entertaining, and surprising — built to be a blast on YouTube.
-- Prioritize fun synergies, unexpected combos, and "this shouldn't work but it does" energy over raw competitiveness.
-- It should still realistically win games, but flavor and surprise factor matter most.`;
+        ? `MODE: SPICY COMPETITIVE — this is the priority. The deck MUST be genuinely powerful enough to beat the current meta. Power first, spice second.
+- It must be tournament-viable and realistically able to climb ranked ladder, while still being off-meta (NOT a known tier 1/tier 2 netdeck).
+- USE THE BEST AVAILABLE CARDS in these colors. Do NOT use weak, cute, or "fun-but-bad" cards to force a theme. Every card must earn its slot. Include the format's premium removal, efficient threats, card advantage engines, and the strongest mana base possible (best dual/utility lands legal in Standard).
+- SPEED & CURVE: be fast and proactive enough to race or disrupt the meta. Keep a tight, low curve appropriate to the archetype; do not be clunky or slow.
+- ENGINEER A REAL ENGINE: build around a deeply analyzed, ACTUALLY FUNCTIONAL plan — a true infinite/lock combo, a powerful synergy/value engine, OR a tuned meta-countering tech build. It does NOT have to be a combo, but whatever the core is, it MUST actually work with real, currently-legal cards and produce a fast, repeatable, game-winning advantage. Verify the interaction is real before including it (correct card names, timing, mana, and that it isn't broken up by rotation/bans).
+- COUNTER THE META: using the live meta snapshot above, identify the top 3-5 most-played decks and their key threats/removal/weaknesses, then include targeted maindeck answers and resilience so this deck preys on them.
+- In key_interactions: explicitly (1) explain the engine/combo step-by-step proving it works, and (2) name WHICH meta decks this beats and exactly HOW.
+- Competitiveness rating must be high ONLY if the deck genuinely earns it against THIS meta.`
+        : `MODE: SPICY FUN — but still powerful.
+- Creative, entertaining and surprising, built to be a blast on YouTube, with unexpected synergies and "this shouldn't work but it does" energy.
+- It MUST still be genuinely strong: use the best available cards for the theme, keep a clean curve, and include a real, FUNCTIONAL engine/combo (verify it actually works with real legal cards). No win-more filler, no cards that are just bad.
+- It should realistically beat real meta decks, not just be a meme. Flavor and surprise matter, but never at the cost of the deck actually working.`;
 
     try {
       const result = await base44.integrations.Core.InvokeLLM({
@@ -60,14 +90,17 @@ LEGALITY (critical):
 COLOR CONSTRAINT:
 - ${colorContext}
 
-${modeContext}
+${metaContext ? metaContext + "\n\n" : ""}${modeContext}
 
 Requirements:
-- Analyze the current meta before building.
-- Do NOT copy any existing tier 1 / tier 2 / commonly played archetype.
-- Combine successful mechanics and synergies from multiple meta decks into something original.
-- Clear win condition and internal synergy. It should realistically win games, not just be a meme deck.
-- Avoid obvious netdecks. Prioritize interesting, entertaining interactions for YouTube viewers.
+- Ground the build in the live meta snapshot above (if provided). Analyze the current meta before building.
+- POWER IS MANDATORY: the deck must be strong enough to genuinely beat the current meta. Use the BEST currently-legal cards in these colors — premium removal, efficient threats, card-advantage engines, and the strongest legal mana base. Never include weak/cute cards just for theme.
+- ENGINE MUST WORK: build around a real, deeply-analyzed core (infinite/lock combo, powerful synergy/value engine, or meta-countering tech). It need not be a combo, but it MUST actually function with real, currently-legal cards — verify the interaction (names, timing, mana) before including it.
+- Do NOT copy any existing tier 1 / tier 2 / commonly played archetype — but DO use their best individual cards where correct.
+- Combine successful mechanics and synergies from multiple meta decks into something original AND powerful.
+- Clear win condition and tight internal synergy. It must realistically win games against meta decks, not just be a meme deck.
+- Be fast/consistent: clean low-to-mid curve, no clunky filler.
+- Avoid obvious netdecks. Prioritize interesting interactions for YouTube viewers — but power comes first.
 - The main deck MUST contain EXACTLY 60 cards total. The sum of all "quantity" values across every entry in the cards array MUST equal exactly 60 — no more, no less. This is mandatory. Include enough lands (typically 22-25) and spells so the quantities add up to 60. Do not stop early or summarize; list every card with its full quantity.
 - Rate the deck HONESTLY and SPECIFICALLY on Competitiveness (1-10), Entertainment Value (1-10), Surprise Factor (1-10). These scores MUST genuinely reflect THIS specific deck — do NOT default to similar or generic high numbers every time. Judge critically: a janky off-meta brew should usually score lower on Competitiveness than a tuned synergy deck; a straightforward deck should score lower on Surprise Factor than a true "this shouldn't work" build. Use the full 1-10 range and vary the three scores from each other where appropriate based on the deck's actual strengths and weaknesses.
 
