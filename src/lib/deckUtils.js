@@ -37,6 +37,20 @@ export async function validateStandardLegality(cards) {
   return { legal: illegal.length === 0, illegal };
 }
 
+// Normalize the AI mana_curve (keys "0".."7+") into the SavedDeck schema (1..6plus).
+function normalizeManaCurve(curve) {
+  const c = curve || {};
+  const num = (k) => Number(c[k]) || 0;
+  return {
+    1: num("1"),
+    2: num("2"),
+    3: num("3"),
+    4: num("4"),
+    5: num("5"),
+    "6plus": num("0") + num("6") + num("7+") + num("7") + num("6plus"),
+  };
+}
+
 // Map a generated deck object + selected colors into a SavedDeck record.
 export function toSavedDeck(deck, selectedColors) {
   const r = deck.ratings || {};
@@ -48,7 +62,7 @@ export function toSavedDeck(deck, selectedColors) {
     youtube_description: deck.description || "",
     strategy: deck.strategy || "",
     key_interactions: deck.key_interactions || "",
-    mana_curve: deck.mana_curve || {},
+    mana_curve: normalizeManaCurve(deck.mana_curve),
     decklist: (deck.cards || []).map((c) => ({
       name: c.name,
       quantity: c.quantity || 1,
