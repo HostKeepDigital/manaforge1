@@ -92,6 +92,16 @@ COLOR CONSTRAINT:
 
 ${metaContext ? metaContext + "\n\n" : ""}${modeContext}
 
+GRANDMASTER 5-PASS REVIEW (mandatory, do this internally before giving the final list):
+- Adopt the mindset of the single greatest MTG player and deckbuilding tactician who ever lived — a Hall-of-Fame, Pro-Tour-winning master who never makes a loose deckbuilding decision.
+- Build a first draft, then critique and REBUILD it 5 separate times. On each of the 5 passes, ruthlessly ask:
+  1) Is EVERY card the best possible currently-legal option for its role, or is there a strictly better card? Cut weak/cute/win-more cards.
+  2) Does the core engine/combo ACTUALLY work with these exact legal cards (names, timing, mana, no ban/rotation issues)? If not, fix or replace it.
+  3) Is the mana base flawless — correct colors, counts, untapped early, best legal lands? Fix any awkward mana.
+  4) Is the curve tight and the deck fast/consistent enough to beat the current meta's top decks? Trim clunk.
+  5) Against the live meta above, does this deck have a real plan vs each top archetype? Add answers where it's weak.
+- After each pass the deck must be STRICTLY BETTER than before. Keep only the final, 5x-refined version. The result must be a deck this grandmaster would confidently play in a high-stakes match "no matter what" — never a deck that simply doesn't function.
+
 Requirements:
 - Ground the build in the live meta snapshot above (if provided). Analyze the current meta before building.
 - POWER IS MANDATORY: the deck must be strong enough to genuinely beat the current meta. Use the BEST currently-legal cards in these colors — premium removal, efficient threats, card-advantage engines, and the strongest legal mana base. Never include weak/cute cards just for theme.
