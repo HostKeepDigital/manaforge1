@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Youtube, Loader2 } from "lucide-react";
+import { Sparkles, Youtube, Loader2, Swords } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import ColorMultiSelect from "../components/bo1/ColorMultiSelect";
@@ -15,16 +15,34 @@ export default function Bo1DeckBuilder() {
   const [status, setStatus] = useState("");
   const [error, setError] = useState(null);
 
-  const generateDeck = async () => {
+  const generateDeck = async (mode = "fun") => {
     if (!colors.length) return;
     setLoading(true);
     setError(null);
     setDeck(null);
-    setStatus("Brewing a spicy Standard deck...");
+    setStatus(
+      mode === "competitive"
+        ? "Analyzing the current meta and brewing a competitive counter-deck..."
+        : "Brewing a spicy, fun Standard deck..."
+    );
 
     const colorContext = `The deck's color identity MUST be limited to ONLY these colors: ${colors.join(
       ", "
     )}. Do not include cards of any other color. Only include off-color lands if absolutely necessary for mana fixing.`;
+
+    const modeContext =
+      mode === "competitive"
+        ? `MODE: SPICY COMPETITIVE.
+- This deck must be genuinely COMPETITIVE and tournament-viable, while still being off-meta (NOT a known tier 1/tier 2 netdeck).
+- First, deeply analyze the CURRENT Standard metagame: identify the top 3-5 most-played archetypes right now and their key threats, removal, and weaknesses.
+- Then build a deck that is specifically designed to COUNTER and prey on that meta — include targeted answers (removal, hate cards, sideboard-style maindeck tech, resilience) to the dominant strategies, but package it inside an original game plan with its own win condition.
+- Prioritize power, consistency, and a strong mana base over novelty. It should realistically climb ranked ladder and beat the meta, not just surprise people.
+- In key_interactions, explicitly explain WHICH meta decks this beats and HOW (which cards answer which threats).
+- Competitiveness rating should be high ONLY if the deck genuinely earns it.`
+        : `MODE: SPICY FUN.
+- This deck should be creative, entertaining, and surprising — built to be a blast on YouTube.
+- Prioritize fun synergies, unexpected combos, and "this shouldn't work but it does" energy over raw competitiveness.
+- It should still realistically win games, but flavor and surprise factor matter most.`;
 
     try {
       const result = await base44.integrations.Core.InvokeLLM({
@@ -41,6 +59,8 @@ LEGALITY (critical):
 
 COLOR CONSTRAINT:
 - ${colorContext}
+
+${modeContext}
 
 Requirements:
 - Analyze the current meta before building.
@@ -196,15 +216,30 @@ Use only real card names that are currently legal in Standard (or basic lands).`
         <div className="bg-card rounded-xl border border-border p-5 sm:p-6 space-y-5 mb-10">
           <ColorMultiSelect selected={colors} onChange={setColors} />
 
-          <Button
-            onClick={generateDeck}
-            disabled={!colors.length || loading}
-            size="lg"
-            className="w-full gap-2 font-body bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-            Generate Deck
-          </Button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Button
+              onClick={() => generateDeck("fun")}
+              disabled={!colors.length || loading}
+              size="lg"
+              className="w-full gap-2 font-body bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+              Spicy Fun
+            </Button>
+            <Button
+              onClick={() => generateDeck("competitive")}
+              disabled={!colors.length || loading}
+              size="lg"
+              className="w-full gap-2 font-body bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Swords className="w-5 h-5" />}
+              Spicy Competitive
+            </Button>
+          </div>
+          <p className="font-body text-xs text-muted-foreground text-center">
+            <span className="text-accent font-semibold">Spicy Fun</span> = creative & surprising ·{" "}
+            <span className="text-primary font-semibold">Spicy Competitive</span> = meta-countering & tournament-viable
+          </p>
         </div>
 
         {/* Loading */}
