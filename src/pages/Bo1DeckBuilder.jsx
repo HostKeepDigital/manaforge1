@@ -121,6 +121,14 @@ GRANDMASTER 5-PASS REVIEW (mandatory, do this internally before giving the final
   5) Against the live meta above, does this deck have a real plan vs each top archetype? Add answers where it's weak.
 - After each pass the deck must be STRICTLY BETTER than before. Keep only the final, 5x-refined version. The result must be a deck this grandmaster would confidently play in a high-stakes match "no matter what" — never a deck that simply doesn't function.
 
+STRICT GRANDMASTER PASS/FAIL FILTER (mandatory gate before output):
+- After the 5 passes, run a final hard gate. The deck must satisfy ALL of the following or you must rebuild it until it does:
+  1) CARD QUALITY: every non-land card is tournament-playable in the CURRENT Standard — no cute/win-more/filler/"bad-but-fun" cards. If a card wouldn't make a competitive list of this archetype, cut it for a stronger legal option.
+  2) SYNERGY: the deck has a single coherent, tightly-synergistic gameplan — most non-land cards must actively support ONE core engine/strategy (enablers + payoffs that clearly work together). No piles of unrelated good-stuff.
+  3) CONSISTENCY: a clean curve and a mana base good enough to execute the plan reliably by the turns it matters.
+  4) WIN CONDITION: a clear, repeatable way to actually close games against the current meta's top decks.
+- Self-score the deck 1-10 on (a) card quality and (b) synergy. If EITHER score is below 8, the deck FAILS — rebuild it. Only output a deck that genuinely passes this gate; the spice must come from an original, synergistic angle, NEVER from playing weak cards.
+
 RULES ACCURACY (critical — no false claims):
 - Use ONLY real, current oracle text and the current MTG comprehensive rules. Before describing any interaction, verify the exact card text and how the rules actually resolve it.
 - TARGETING vs WARD/PROTECTION: if an ability or spell TARGETS, it is stopped by Ward (must pay the Ward cost) and by hexproof/protection/shroud. Do NOT claim a targeted effect like Floodpits Drowner "bypasses" or "gets around" Ward — it does not. Only non-targeting effects (e.g. board wipes, edicts, "each"/sacrifice effects) ignore Ward.
@@ -241,6 +249,15 @@ Use only real card names that are currently legal in Standard (or basic lands).`
         );
       }
 
+      // Strict Grandmaster synergy gate: tournament decks run multiple copies of
+      // their key cards (playsets), not a pile of one-of "good stuff". A brew
+      // that's mostly singletons signals low synergy/consistency — reject it so
+      // it gets rebuilt into a focused, synergistic list.
+      const nonLand = data.cards.filter((c) => (c.type || "").toLowerCase() !== "land");
+      const multiCopyDistinct = nonLand.filter((c) => (Number(c.quantity) || 0) >= 3).length;
+      const singletonNonLand = nonLand.filter((c) => (Number(c.quantity) || 0) === 1).length;
+      data._lowSynergy = multiCopyDistinct < 3 || singletonNonLand > nonLand.length / 2;
+
       return data;
     };
 
@@ -273,8 +290,15 @@ Use only real card names that are currently legal in Standard (or basic lands).`
         }
 
         if (result.legal) {
-          illegal = [];
-          break;
+          // Legal — now apply the strict Grandmaster synergy/quality gate.
+          if (!data._lowSynergy || attempt === MAX_ATTEMPTS) {
+            illegal = [];
+            break;
+          }
+          // Low synergy: rebuild with a tighter, more synergistic mandate.
+          legalityFixContext = `\n- CRITICAL FIX: your previous attempt was too unfocused — too many one-of "good stuff" cards and not enough playsets of key synergy pieces. Rebuild as a TIGHTER, more SYNERGISTIC deck: run 3-4 copies of your core enablers and payoffs, cut scattered singletons, and make most non-land cards support ONE coherent engine. Maintain tournament-level card quality.`;
+          data = null;
+          continue;
         }
 
         illegal = result.illegal;
