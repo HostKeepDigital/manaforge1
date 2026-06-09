@@ -18,6 +18,7 @@ import Bo1DeckBuilder from './pages/Bo1DeckBuilder';
 import SpiceHistory from './pages/SpiceHistory';
 import AdminSets from './pages/AdminSets';
 import Account from './pages/Account';
+import StandardCards from './pages/StandardCards';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -49,6 +50,7 @@ const AuthenticatedApp = () => {
         <Route path="/mock-draft" element={<MockDraft />} />
         <Route path="/bo1" element={<Bo1DeckBuilder />} />
         <Route path="/spice-history" element={<SpiceHistory />} />
+        <Route path="/standard-cards" element={<StandardCards />} />
         <Route path="/meta" element={<MetaTierList />} />
         <Route path="/matchups" element={<MatchupAnalyzer />} />
         <Route path="/stats" element={<MyStats />} />
