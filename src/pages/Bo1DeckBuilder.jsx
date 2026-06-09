@@ -102,6 +102,13 @@ GRANDMASTER 5-PASS REVIEW (mandatory, do this internally before giving the final
   5) Against the live meta above, does this deck have a real plan vs each top archetype? Add answers where it's weak.
 - After each pass the deck must be STRICTLY BETTER than before. Keep only the final, 5x-refined version. The result must be a deck this grandmaster would confidently play in a high-stakes match "no matter what" — never a deck that simply doesn't function.
 
+RULES ACCURACY (critical — no false claims):
+- Use ONLY real, current oracle text and the current MTG comprehensive rules. Before describing any interaction, verify the exact card text and how the rules actually resolve it.
+- TARGETING vs WARD/PROTECTION: if an ability or spell TARGETS, it is stopped by Ward (must pay the Ward cost) and by hexproof/protection/shroud. Do NOT claim a targeted effect like Floodpits Drowner "bypasses" or "gets around" Ward — it does not. Only non-targeting effects (e.g. board wipes, edicts, "each"/sacrifice effects) ignore Ward.
+- INDESTRUCTIBLE: only bounce, exile, -X/-X, sacrifice, or "can't be blocked"-style answers get around indestructible; destroy/damage does not.
+- GRAVEYARD RECURSION: only exile-based or shuffle/bounce answers truly deny recursion; "destroy" alone does not.
+- Every claim in strategy/key_interactions about what the deck "beats" or "bypasses" MUST be literally true under current rules. If you are not certain an interaction works, do not include the claim. Prefer fewer, correct claims over impressive-sounding false ones.
+
 Requirements:
 - Ground the build in the live meta snapshot above (if provided). Analyze the current meta before building.
 - POWER IS MANDATORY: the deck must be strong enough to genuinely beat the current meta. Use the BEST currently-legal cards in these colors — premium removal, efficient threats, card-advantage engines, and the strongest legal mana base. Never include weak/cute cards just for theme.
