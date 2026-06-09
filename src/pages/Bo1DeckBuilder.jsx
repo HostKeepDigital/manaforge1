@@ -154,10 +154,21 @@ Use only real card names that are currently legal in Standard (or basic lands).`
         throw new Error("AI returned malformed data, please regenerate.");
       }
 
+      // Drop empty/invalid entries before counting.
+      data.cards = data.cards.filter(
+        (c) => c && typeof c.name === "string" && c.name.trim() && (Number(c.quantity) || 0) > 0
+      );
+
       const totalCards = data.cards.reduce((sum, c) => sum + (Number(c.quantity) || 0), 0);
-      if (totalCards < 60) {
+      const distinctNonLand = data.cards.filter(
+        (c) => (c.type || "").toLowerCase() !== "land"
+      ).length;
+
+      // A real 60-card deck has exactly 60 cards and a meaningful spread of
+      // distinct non-land cards. Reject collapsed decks like "4 Faerie + 20 Island".
+      if (totalCards !== 60 || distinctNonLand < 8) {
         throw new Error(
-          `The AI only built ${totalCards} cards instead of 60. Please hit Generate Deck again.`
+          `The AI returned an incomplete deck (${totalCards} cards, ${distinctNonLand} distinct spells). Please hit Generate again.`
         );
       }
 
