@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Youtube, Loader2, Swords } from "lucide-react";
+import { Sparkles, Youtube, Loader2, Swords, Crosshair } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import ColorMultiSelect from "../components/bo1/ColorMultiSelect";
@@ -21,7 +21,9 @@ export default function Bo1DeckBuilder() {
     setError(null);
     setDeck(null);
     setStatus(
-      mode === "competitive"
+      mode === "metaSniper"
+        ? "Cross-referencing the meta snapshot to build a hard counter-deck..."
+        : mode === "competitive"
         ? "Analyzing the current meta and brewing a competitive counter-deck..."
         : "Brewing a spicy, fun Standard deck..."
     );
@@ -59,8 +61,19 @@ ${m.summary || "(n/a)"}`;
       metaContext = "";
     }
 
+    const metaSniperContext = `MODE: META SNIPER — a hard counter to the CURRENT top archetypes. Power and meta-hate first, spice second.
+- This is a precision anti-meta deck built by directly cross-referencing the LIVE META SNAPSHOT above. If no snapshot is available, analyze the current Standard meta from the internet instead.
+- STEP 1: From the snapshot, list the top 3-5 most-played archetypes RIGHT NOW, and for each one name its key threats, its win condition, and its biggest structural weakness.
+- STEP 2: For EACH of those top archetypes, choose the best currently-legal cards in these colors that specifically prey on it — e.g. cheap interaction vs aggro, graveyard/exile hate vs recursion decks, enchantment/artifact removal, anti-control resilience (uncounterable threats, card advantage), lifegain vs burn, sweepers vs go-wide, etc. Prioritize cards that answer MULTIPLE top decks at once.
+- STEP 3: Wrap these answers around ONE proactive, fast win condition so the deck still closes games — it must not be all reaction.
+- The maindeck itself should function like a tuned sideboard against the field: every flex slot should be pointed at a real, named meta deck.
+- In key_interactions, go archetype-by-archetype: name each top meta deck and list exactly which of your cards beat it and how (must be literally true under current rules).
+- Competitiveness rating should be high only if it genuinely dismantles the current top decks.`;
+
     const modeContext =
-      mode === "competitive"
+      mode === "metaSniper"
+        ? metaSniperContext
+        : mode === "competitive"
         ? `MODE: SPICY COMPETITIVE — this is the priority. The deck MUST be genuinely powerful enough to beat the current meta. Power first, spice second.
 - It must be tournament-viable and realistically able to climb ranked ladder, while still being off-meta (NOT a known tier 1/tier 2 netdeck).
 - USE THE BEST AVAILABLE CARDS in these colors. Do NOT use weak, cute, or "fun-but-bad" cards to force a theme. Every card must earn its slot. Include the format's premium removal, efficient threats, card advantage engines, and the strongest mana base possible (best dual/utility lands legal in Standard).
@@ -277,7 +290,7 @@ Use only real card names that are currently legal in Standard (or basic lands).`
         <div className="bg-card rounded-xl border border-border p-5 sm:p-6 space-y-5 mb-10">
           <ColorMultiSelect selected={colors} onChange={setColors} />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Button
               onClick={() => generateDeck("fun")}
               disabled={!colors.length || loading}
@@ -296,10 +309,20 @@ Use only real card names that are currently legal in Standard (or basic lands).`
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Swords className="w-5 h-5" />}
               Spicy Competitive
             </Button>
+            <Button
+              onClick={() => generateDeck("metaSniper")}
+              disabled={!colors.length || loading}
+              size="lg"
+              className="w-full gap-2 font-body bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Crosshair className="w-5 h-5" />}
+              Meta Sniper
+            </Button>
           </div>
           <p className="font-body text-xs text-muted-foreground text-center">
             <span className="text-accent font-semibold">Spicy Fun</span> = creative & surprising ·{" "}
-            <span className="text-primary font-semibold">Spicy Competitive</span> = meta-countering & tournament-viable
+            <span className="text-primary font-semibold">Spicy Competitive</span> = meta-countering & tournament-viable ·{" "}
+            <span className="text-destructive font-semibold">Meta Sniper</span> = hard counter to top archetypes
           </p>
         </div>
 
