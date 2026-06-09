@@ -17,6 +17,7 @@ import MyStats from './pages/MyStats';
 import Bo1DeckBuilder from './pages/Bo1DeckBuilder';
 import SpiceHistory from './pages/SpiceHistory';
 import AdminSets from './pages/AdminSets';
+import Account from './pages/Account';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -52,6 +53,7 @@ const AuthenticatedApp = () => {
         <Route path="/matchups" element={<MatchupAnalyzer />} />
         <Route path="/stats" element={<MyStats />} />
         <Route path="/admin/sets" element={<AdminSets />} />
+        <Route path="/account" element={<Account />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

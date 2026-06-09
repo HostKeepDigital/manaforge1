@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sparkles, Library, BarChart2, Swords, TrendingUp, BookOpen, Menu, X, Trophy, Lightbulb, GraduationCap, Youtube, Settings, History, PanelLeftClose, PanelLeftOpen
+  Sparkles, Library, BarChart2, Swords, TrendingUp, BookOpen, Menu, X, Trophy, Lightbulb, GraduationCap, Youtube, Settings, History, PanelLeftClose, PanelLeftOpen, UserCircle
 } from "lucide-react";
 
 const NAV = [
@@ -18,6 +18,7 @@ const NAV = [
   { path: "/matchups", label: "Matchup Analyzer", icon: Swords },
   { path: "/stats", label: "My Stats", icon: BarChart2 },
   { path: "/admin/sets", label: "Manage Sets", icon: Settings },
+  { path: "/account", label: "Account", icon: UserCircle },
 ];
 
 export default function AppLayout() {
