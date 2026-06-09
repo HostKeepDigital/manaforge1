@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from './components/layout/AppLayout';
 import Home from './pages/Home';
+import DeckBuilder from './pages/DeckBuilder';
 import Collection from './pages/Collection';
 import DraftAssistant from './pages/DraftAssistant';
 import DeckIdeas from './pages/DeckIdeas';
@@ -44,6 +45,7 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/deck-builder" element={<DeckBuilder />} />
         <Route path="/collection" element={<Collection />} />
         <Route path="/draft" element={<DraftAssistant />} />
         <Route path="/ideas" element={<DeckIdeas />} />
