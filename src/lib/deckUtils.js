@@ -51,17 +51,25 @@ function normalizeManaCurve(curve) {
   };
 }
 
+// Always coerce a value into a plain string (AI sometimes returns arrays/objects).
+function asString(v) {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  if (Array.isArray(v)) return v.map((x) => asString(x)).join("\n");
+  return String(v);
+}
+
 // Map a generated deck object + selected colors into a SavedDeck record.
 export function toSavedDeck(deck, selectedColors) {
   const r = deck.ratings || {};
   return {
-    category: deck.category || "",
-    category_reasoning: deck.category_reason || "",
+    category: asString(deck.category),
+    category_reasoning: asString(deck.category_reason),
     colors: selectedColors || deck.colors || [],
-    deck_name: deck.deck_name || "Untitled Deck",
-    youtube_description: deck.description || "",
-    strategy: deck.strategy || "",
-    key_interactions: deck.key_interactions || "",
+    deck_name: asString(deck.deck_name) || "Untitled Deck",
+    youtube_description: asString(deck.description),
+    strategy: asString(deck.strategy),
+    key_interactions: asString(deck.key_interactions),
     mana_curve: normalizeManaCurve(deck.mana_curve),
     decklist: (deck.cards || []).map((c) => ({
       name: c.name,
@@ -70,9 +78,9 @@ export function toSavedDeck(deck, selectedColors) {
     })),
     mtga_decklist: toMtgaFormat(deck.cards),
     ratings: {
-      competitiveness: r.competitiveness ?? 0,
-      entertainment: r.entertainment_value ?? r.entertainment ?? 0,
-      surprise: r.surprise_factor ?? r.surprise ?? 0,
+      competitiveness: Number(r.competitiveness) || 0,
+      entertainment: Number(r.entertainment_value ?? r.entertainment) || 0,
+      surprise: Number(r.surprise_factor ?? r.surprise) || 0,
     },
     verified_legal: true,
     generated_at: new Date().toISOString(),

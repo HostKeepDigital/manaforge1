@@ -30,11 +30,8 @@
       "description": "Core strategy explanation"
     },
     "key_interactions": {
-      "type": "array",
-      "description": "List of key card interactions",
-      "items": {
-        "type": "string"
-      }
+      "type": "string",
+      "description": "Markdown explaining the key card interactions"
     },
     "mana_curve": {
       "type": "object",
