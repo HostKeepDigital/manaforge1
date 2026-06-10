@@ -37,6 +37,44 @@ export async function validateStandardLegality(cards) {
   return { legal: illegal.length === 0, illegal };
 }
 
+// Build a map of card name -> quantity from a card array (any shape with name/quantity).
+function cardQtyMap(cards) {
+  const map = {};
+  (cards || []).forEach((c) => {
+    const name = (c?.name || "").trim().toLowerCase();
+    if (!name) return;
+    map[name] = (map[name] || 0) + (Number(c.quantity) || 1);
+  });
+  return map;
+}
+
+// Compute the % of cards shared between two decks (by overlapping copies / 60).
+// Returns a number 0-100.
+export function deckSimilarity(cardsA, cardsB) {
+  const a = cardQtyMap(cardsA);
+  const b = cardQtyMap(cardsB);
+  let shared = 0;
+  for (const name of Object.keys(a)) {
+    if (b[name]) shared += Math.min(a[name], b[name]);
+  }
+  const totalA = Object.values(a).reduce((s, n) => s + n, 0) || 1;
+  const totalB = Object.values(b).reduce((s, n) => s + n, 0) || 1;
+  const denom = Math.max(totalA, totalB);
+  return (shared / denom) * 100;
+}
+
+// Check a new deck's card list against all existing saved decks.
+// Returns { duplicate: boolean, maxOverlap: number } — duplicate is true if any
+// existing deck shares MORE than `threshold` percent of cards.
+export function findTooSimilar(newCards, existingDecks, threshold = 85) {
+  let maxOverlap = 0;
+  for (const d of existingDecks || []) {
+    const overlap = deckSimilarity(newCards, d.decklist || []);
+    if (overlap > maxOverlap) maxOverlap = overlap;
+  }
+  return { duplicate: maxOverlap > threshold, maxOverlap };
+}
+
 // Normalize the AI mana_curve (keys "0".."7+") into the SavedDeck schema (1..6plus).
 function normalizeManaCurve(curve) {
   const c = curve || {};

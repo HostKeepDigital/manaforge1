@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import ColorMultiSelect from "../components/bo1/ColorMultiSelect";
 import Bo1DeckDisplay from "../components/bo1/Bo1DeckDisplay";
-import { validateStandardLegality, toSavedDeck } from "@/lib/deckUtils";
+import { validateStandardLegality, toSavedDeck, findTooSimilar } from "@/lib/deckUtils";
 
 export default function Bo1DeckBuilder() {
   const [colors, setColors] = useState([]);
@@ -269,6 +269,16 @@ Use only real card names that are currently legal in Standard (or basic lands).`
       let data = null;
       let illegal = [];
 
+      // Load existing decks once so we can reject brews that are >85% identical
+      // to anything already in Spice History.
+      let existingDecks = [];
+      try {
+        existingDecks = await base44.entities.SavedDeck.list("-generated_at", 500);
+      } catch {
+        existingDecks = [];
+      }
+      let lastOverlap = 0;
+
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         setStatus(
           attempt === 1
@@ -290,7 +300,20 @@ Use only real card names that are currently legal in Standard (or basic lands).`
         }
 
         if (result.legal) {
-          // Legal — now apply the strict Grandmaster synergy/quality gate.
+          // Uniqueness gate: reject if this brew is >85% identical to an
+          // existing deck in Spice History, so no two decks are near-duplicates.
+          setStatus("Checking Spice History for duplicates...");
+          const { duplicate, maxOverlap } = findTooSimilar(data.cards, existingDecks, 85);
+          lastOverlap = maxOverlap;
+          if (duplicate && attempt < MAX_ATTEMPTS) {
+            legalityFixContext = `\n- CRITICAL FIX: your previous attempt was ${maxOverlap.toFixed(
+              0
+            )}% identical to a deck that already exists in the user's history. Build a SUBSTANTIALLY DIFFERENT deck — no more than 85% card overlap with any existing build. Change the core engine, key cards, and/or game plan so this is a genuinely distinct brew.`;
+            data = null;
+            continue;
+          }
+
+          // Unique enough — now apply the strict Grandmaster synergy/quality gate.
           if (!data._lowSynergy || attempt === MAX_ATTEMPTS) {
             illegal = [];
             break;
@@ -317,6 +340,10 @@ Use only real card names that are currently legal in Standard (or basic lands).`
         );
       }
 
+      // Final duplicate guard: if even the last attempt is >85% identical to an
+      // existing deck, show it but do NOT save a near-duplicate to history.
+      const tooSimilar = findTooSimilar(data.cards, existingDecks, 85).duplicate;
+
       // Tag the banner with the mode that was pressed, instead of the AI's
       // internal concept category, so it's clear which button made the deck.
       const MODE_LABEL = {
@@ -328,16 +355,25 @@ Use only real card names that are currently legal in Standard (or basic lands).`
 
       setDeck(data);
 
-      // Deck is verified legal — save it to history.
-      setStatus("Saving your verified deck...");
-      try {
-        await base44.entities.SavedDeck.create({
-          ...toSavedDeck(data, colors),
-          verified_legal: true,
-        });
-        toast.success("Verified Standard-legal brew saved to Spice History!");
-      } catch (saveErr) {
-        toast.error("Couldn't save this brew to history: " + (saveErr?.message || "unknown error"));
+      if (tooSimilar) {
+        // Near-duplicate of an existing deck — display it but skip saving.
+        toast.warning(
+          `This brew is over 85% identical to a deck already in your history (${lastOverlap.toFixed(
+            0
+          )}% overlap), so it wasn't saved. Try generating again for something fresh.`
+        );
+      } else {
+        // Deck is verified legal and unique — save it to history.
+        setStatus("Saving your verified deck...");
+        try {
+          await base44.entities.SavedDeck.create({
+            ...toSavedDeck(data, colors),
+            verified_legal: true,
+          });
+          toast.success("Verified Standard-legal brew saved to Spice History!");
+        } catch (saveErr) {
+          toast.error("Couldn't save this brew to history: " + (saveErr?.message || "unknown error"));
+        }
       }
     } catch (err) {
       setError(err?.message || "Something went wrong generating the deck. Please try again.");
