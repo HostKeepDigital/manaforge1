@@ -35,7 +35,7 @@ Cross-reference all three sources and produce an accurate, current snapshot. Use
 
 Capture:
 1. current_sets: which sets are currently legal / driving the format.
-2. top_archetypes: markdown listing Tier 1 and strong Tier 2 decks with approximate meta share %, win rate %, and 2-3 signature cards each.
+2. top_archetypes: markdown listing Tier 1 and strong Tier 2 decks, each with 2-3 signature cards. For EVERY meta-share and win-rate figure you MUST explicitly label it as an estimate (e.g. "~18% (est.)", "win rate ~54% (est.)"). NEVER present a number as official data, and NEVER state a figure you cannot reasonably support from the three sources above — if a number isn't supported, omit it or say "share not reliably available" rather than guessing.
 3. draft_strategies: markdown describing the overall format shape (aggro/control/combo split), what dominates, and what an off-meta counter-deck should target.
 4. pro_insights: markdown of takeaways from recent major events and notable win-rate sleepers.
 5. summary: a concise overall summary used as context for deck building.`,
