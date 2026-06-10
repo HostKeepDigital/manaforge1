@@ -401,7 +401,7 @@ Use only real card names that are currently legal in Standard (or basic lands).`
             Daily Spice Rack
           </h1>
           <p className="font-body text-muted-foreground text-lg mt-4 max-w-xl mx-auto">
-            Your daily off-meta Standard brew. Pick your colors and AI cooks up one original, YouTube-worthy deck from the entire current Standard card pool.
+            Fresh Standard brews delivered daily. Pick your colors, unlock a brand new deck built for content creators and competitive grinders alike.
           </p>
         </motion.div>
 
