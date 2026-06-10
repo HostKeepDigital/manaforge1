@@ -317,6 +317,15 @@ Use only real card names that are currently legal in Standard (or basic lands).`
         );
       }
 
+      // Tag the banner with the mode that was pressed, instead of the AI's
+      // internal concept category, so it's clear which button made the deck.
+      const MODE_LABEL = {
+        fun: "Spicy Fun",
+        competitive: "Spicy Competitive",
+        metaSniper: "Meta Sniper",
+      };
+      data.category = MODE_LABEL[mode] || data.category;
+
       setDeck(data);
 
       // Deck is verified legal — save it to history.
