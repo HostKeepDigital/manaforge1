@@ -12,6 +12,7 @@ import {
 import { format } from "date-fns";
 import ColorPips from "../bo1/ColorPips";
 import Bo1DeckDisplay from "../bo1/Bo1DeckDisplay";
+import DeckList from "../bo1/DeckList";
 import UserDeckRating from "./UserDeckRating";
 import { savedDeckToDisplay } from "@/lib/deckUtils";
 
@@ -116,7 +117,8 @@ export default function HistoryDeckCard({ deck, onToggleFavorite, onDelete, onRa
                 rating={ur}
                 onRate={(next) => onRate(deck, next)}
               />
-              <Bo1DeckDisplay deck={savedDeckToDisplay(deck)} mtgaString={deck.mtga_decklist} />
+              <DeckList cards={savedDeckToDisplay(deck).cards} mtgaString={deck.mtga_decklist} />
+              <Bo1DeckDisplay deck={savedDeckToDisplay(deck)} mtgaString={deck.mtga_decklist} hideDecklist />
             </div>
           </motion.div>
         )}
