@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { History, Loader2, Star, ListFilter } from "lucide-react";
+import { History, Loader2, Star, ListFilter, Youtube, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import HistoryDeckCard from "../components/history/HistoryDeckCard";

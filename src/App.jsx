@@ -13,6 +13,7 @@ import DraftAssistant from './pages/DraftAssistant';
 import DeckIdeas from './pages/DeckIdeas';
 import MockDraft from './pages/MockDraft';
 import MetaTierList from './pages/MetaTierList';
+import MetaDecks from './pages/MetaDecks';
 import MatchupAnalyzer from './pages/MatchupAnalyzer';
 import MyStats from './pages/MyStats';
 import Bo1DeckBuilder from './pages/Bo1DeckBuilder';
@@ -56,6 +57,7 @@ const AuthenticatedApp = () => {
         <Route path="/spice-history" element={<SpiceHistory />} />
         <Route path="/standard-cards" element={<StandardCards />} />
         <Route path="/meta" element={<MetaTierList />} />
+        <Route path="/meta-decks" element={<MetaDecks />} />
         <Route path="/matchups" element={<MatchupAnalyzer />} />
         <Route path="/stats" element={<MyStats />} />
         <Route path="/admin/sets" element={<AdminSets />} />

@@ -28,6 +28,10 @@ export default function Bo1DeckBuilder() {
         : "Brewing a spicy, fun Standard deck..."
     );
 
+    const colorContext = `The deck's color identity MUST be limited to ONLY these colors: ${colors.join(
+      ", "
+    )}. Do not include cards of any other color. Only include off-color lands if absolutely necessary for mana fixing.`;
+
     // Ground the build in REAL, currently Standard-legal cards in these colors.
     setStatus("Loading the live Standard card pool from Scryfall...");
     const cardPool = await fetchStandardCardPool(colors, 200);

@@ -18,6 +18,14 @@
       "type": "string",
       "description": "Why that category was chosen for the current meta"
     },
+    "source": {
+      "type": "string",
+      "enum": [
+        "spice",
+        "meta"
+      ],
+      "description": "Where the deck came from: 'spice' = Daily Spice Rack brew, 'meta' = saved Meta Decks netdeck"
+    },
     "colors": {
       "type": "array",
       "description": "Selected colour identity for the deck, e.g. ['B','G']",

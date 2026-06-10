@@ -17,6 +17,7 @@ const FEATURES = [
   { to: "/collection", icon: Library, title: "Collection", description: "Scan and organize your card collection from screenshots." },
   { to: "/draft", icon: BookOpen, title: "Draft Assistant", description: "Get real-time pick advice and synergy notes during a draft." },
   { to: "/meta", icon: TrendingUp, title: "Meta Tier List", description: "Browse the strongest current archetypes ranked by tier." },
+  { to: "/meta-decks", icon: Trophy, title: "Meta Decks", description: "The real top Standard decks right now — full importable lists, pilot guides, and matchups." },
   { to: "/matchups", icon: Swords, title: "Matchup Analyzer", description: "See how your deck performs against the current meta." },
   { to: "/stats", icon: BarChart2, title: "My Stats", description: "Log your games and track win rates and trends over time." },
 ];
