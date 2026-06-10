@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Trophy, ChevronDown, BookOpen, Swords } from "lucide-react";
+import { Copy, Trophy, ChevronDown, BookOpen, Swords, Bookmark, Check } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import ColorPips from "../bo1/ColorPips";
@@ -15,7 +15,7 @@ const TIER_CLS = {
   3: "bg-secondary text-secondary-foreground",
 };
 
-export default function MetaDeckPanel({ deck, index }) {
+export default function MetaDeckPanel({ deck, index = 0, onSave, saved }) {
   const [guideOpen, setGuideOpen] = useState(false);
 
   const copyMtga = () => {
@@ -60,11 +60,24 @@ export default function MetaDeckPanel({ deck, index }) {
         )}
       </div>
 
-      {/* Copy MTGA */}
-      <Button onClick={copyMtga} className="gap-2 font-body bg-primary text-primary-foreground hover:bg-primary/90">
-        <Copy className="w-4 h-4" />
-        Copy MTGA list
-      </Button>
+      {/* Actions */}
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={copyMtga} className="gap-2 font-body bg-primary text-primary-foreground hover:bg-primary/90">
+          <Copy className="w-4 h-4" />
+          Copy MTGA list
+        </Button>
+        {onSave && (
+          <Button
+            onClick={() => onSave(deck)}
+            disabled={saved}
+            variant="outline"
+            className="gap-2 font-body"
+          >
+            {saved ? <Check className="w-4 h-4 text-primary" /> : <Bookmark className="w-4 h-4" />}
+            {saved ? "Saved" : "Save deck"}
+          </Button>
+        )}
+      </div>
 
       {/* Maindeck */}
       <DeckList cards={deck.maindeck} mtgaString={deck.mtga_decklist} />
