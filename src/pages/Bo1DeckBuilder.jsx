@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import ColorMultiSelect from "../components/bo1/ColorMultiSelect";
 import Bo1DeckDisplay from "../components/bo1/Bo1DeckDisplay";
-import { validateStandardLegality, toSavedDeck, findTooSimilar } from "@/lib/deckUtils";
+import { validateStandardLegality, toSavedDeck, findTooSimilar, fetchStandardCardPool, formatCardPool } from "@/lib/deckUtils";
 
 export default function Bo1DeckBuilder() {
   const [colors, setColors] = useState([]);
@@ -28,9 +28,12 @@ export default function Bo1DeckBuilder() {
         : "Brewing a spicy, fun Standard deck..."
     );
 
-    const colorContext = `The deck's color identity MUST be limited to ONLY these colors: ${colors.join(
-      ", "
-    )}. Do not include cards of any other color. Only include off-color lands if absolutely necessary for mana fixing.`;
+    // Ground the build in REAL, currently Standard-legal cards in these colors.
+    setStatus("Loading the live Standard card pool from Scryfall...");
+    const cardPool = await fetchStandardCardPool(colors, 200);
+    const cardPoolContext = cardPool.length
+      ? `\n\nREAL, CURRENTLY STANDARD-LEGAL CARD POOL for these colors (pulled live from Scryfall — every card below exists and is legal right now). PREFER building from this list. You may use another Standard-legal card only if you are certain it is currently legal:\n${formatCardPool(cardPool)}`
+      : "";
 
     // Pull the freshest live Standard meta snapshot so brews are grounded in the
     // actual current metagame (top decks, win rates, what to beat) instead of guesses.
@@ -108,6 +111,7 @@ LEGALITY (critical):
 
 COLOR CONSTRAINT:
 - ${colorContext}
+${cardPoolContext}
 
 ${metaContext ? metaContext + "\n\n" : ""}${modeContext}
 
