@@ -2,13 +2,14 @@ import React from "react";
 import { motion } from "framer-motion";
 import {
   Sparkles, Youtube, History, LibraryBig, Lightbulb, GraduationCap,
-  Library, BookOpen, TrendingUp, Swords, BarChart2, Trophy
+  Library, BookOpen, TrendingUp, Swords, BarChart2, Trophy, Dices
 } from "lucide-react";
 import FeatureCard from "../components/home/FeatureCard";
 
 const FEATURES = [
   { to: "/deck-builder", icon: Sparkles, title: "Deck Builder", description: "Upload an Arena screenshot and let AI build your most optimal deck with synergy & win-rate analysis." },
   { to: "/bo1", icon: Youtube, title: "Daily Spice Rack", description: "Generate an original, off-meta Standard brew built for YouTube — fun or competitive." },
+  { to: "/spin", icon: Dices, title: "Spin the Wheel", description: "Let fate pick your colors and brew mode — randomize your daily video, totally out of your control." },
   { to: "/spice-history", icon: History, title: "Spice History", description: "Revisit, favorite, and manage every deck you've generated." },
   { to: "/standard-cards", icon: LibraryBig, title: "Standard Cards", description: "Browse every Standard-legal card live from Scryfall, by set and color." },
   { to: "/ideas", icon: Lightbulb, title: "Deck Ideas", description: "Describe a strategy and get a tournament-ready, format-legal decklist." },

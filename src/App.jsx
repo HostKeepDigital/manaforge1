@@ -20,6 +20,7 @@ import SpiceHistory from './pages/SpiceHistory';
 import AdminSets from './pages/AdminSets';
 import Account from './pages/Account';
 import StandardCards from './pages/StandardCards';
+import SpinTheWheel from './pages/SpinTheWheel';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -51,6 +52,7 @@ const AuthenticatedApp = () => {
         <Route path="/ideas" element={<DeckIdeas />} />
         <Route path="/mock-draft" element={<MockDraft />} />
         <Route path="/bo1" element={<Bo1DeckBuilder />} />
+        <Route path="/spin" element={<SpinTheWheel />} />
         <Route path="/spice-history" element={<SpiceHistory />} />
         <Route path="/standard-cards" element={<StandardCards />} />
         <Route path="/meta" element={<MetaTierList />} />

@@ -3,13 +3,14 @@ import { Link, useLocation } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sparkles, Library, BarChart2, Swords, TrendingUp, BookOpen, Menu, X, Trophy, Lightbulb, GraduationCap, Youtube, Settings, History, PanelLeftClose, PanelLeftOpen, UserCircle, LibraryBig, Home
+  Sparkles, Library, BarChart2, Swords, TrendingUp, BookOpen, Menu, X, Trophy, Lightbulb, GraduationCap, Youtube, Settings, History, PanelLeftClose, PanelLeftOpen, UserCircle, LibraryBig, Home, Dices
 } from "lucide-react";
 
 const NAV = [
   { path: "/", label: "Home", icon: Home },
   { path: "/deck-builder", label: "Deck Builder", icon: Sparkles },
   { path: "/bo1", label: "Daily Spice Rack", icon: Youtube },
+  { path: "/spin", label: "Spin the Wheel", icon: Dices },
   { path: "/spice-history", label: "Spice History", icon: History },
   { path: "/standard-cards", label: "Standard Cards", icon: LibraryBig },
   { path: "/ideas", label: "Deck Ideas", icon: Lightbulb },
