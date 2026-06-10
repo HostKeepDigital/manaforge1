@@ -28,6 +28,11 @@ export default function SpiceHistory() {
     await base44.entities.SavedDeck.update(deck.id, { favorite: next });
   };
 
+  const rateDeck = async (deck, user_rating) => {
+    setDecks((prev) => prev.map((d) => (d.id === deck.id ? { ...d, user_rating } : d)));
+    await base44.entities.SavedDeck.update(deck.id, { user_rating });
+  };
+
   const deleteDeck = async (deck) => {
     setDecks((prev) => prev.filter((d) => d.id !== deck.id));
     await base44.entities.SavedDeck.delete(deck.id);
@@ -101,6 +106,7 @@ export default function SpiceHistory() {
                 deck={deck}
                 onToggleFavorite={toggleFavorite}
                 onDelete={deleteDeck}
+                onRate={rateDeck}
               />
             ))}
           </div>

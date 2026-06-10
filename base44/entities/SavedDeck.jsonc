@@ -90,6 +90,21 @@
         }
       }
     },
+    "user_rating": {
+      "type": "object",
+      "description": "The user's own post-game rating of the deck (1-10 each)",
+      "properties": {
+        "fun": {
+          "type": "number"
+        },
+        "competitive": {
+          "type": "number"
+        },
+        "spicy": {
+          "type": "number"
+        }
+      }
+    },
     "mtga_decklist": {
       "type": "string",
       "description": "The decklist in MTGA import format (quantity + name per line)"

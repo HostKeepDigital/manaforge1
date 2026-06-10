@@ -12,6 +12,7 @@ import {
 import { format } from "date-fns";
 import ColorPips from "../bo1/ColorPips";
 import Bo1DeckDisplay from "../bo1/Bo1DeckDisplay";
+import UserDeckRating from "./UserDeckRating";
 import { savedDeckToDisplay } from "@/lib/deckUtils";
 
 const RATING_META = [
@@ -20,9 +21,10 @@ const RATING_META = [
   { key: "surprise", icon: Zap, label: "Surprise" },
 ];
 
-export default function HistoryDeckCard({ deck, onToggleFavorite, onDelete }) {
+export default function HistoryDeckCard({ deck, onToggleFavorite, onDelete, onRate }) {
   const [open, setOpen] = useState(false);
   const r = deck.ratings || {};
+  const ur = deck.user_rating || {};
 
   return (
     <motion.div
@@ -109,7 +111,11 @@ export default function HistoryDeckCard({ deck, onToggleFavorite, onDelete }) {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden border-t border-border"
           >
-            <div className="p-4 sm:p-5">
+            <div className="p-4 sm:p-5 space-y-5">
+              <UserDeckRating
+                rating={ur}
+                onRate={(next) => onRate(deck, next)}
+              />
               <Bo1DeckDisplay deck={savedDeckToDisplay(deck)} mtgaString={deck.mtga_decklist} />
             </div>
           </motion.div>
