@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { History, Loader2, Star, ListFilter, Youtube, Trophy } from "lucide-react";
+import { History, Loader2, Star, ListFilter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import HistoryDeckCard from "../components/history/HistoryDeckCard";
@@ -12,6 +12,7 @@ export default function SpiceHistory() {
   const [loading, setLoading] = useState(true);
   const [favOnly, setFavOnly] = useState(false);
   const [colorFilter, setColorFilter] = useState([]);
+  const [view, setView] = useState("spice"); // "spice" (brews) | "meta"
 
   const load = async () => {
     setLoading(true);
@@ -40,6 +41,8 @@ export default function SpiceHistory() {
   };
 
   const filtered = decks.filter((d) => {
+    // Brews view shows spice/legacy decks; Meta view shows saved netdecks.
+    if (view === "meta" ? d.source !== "meta" : d.source === "meta") return false;
     if (favOnly && !d.favorite) return false;
     if (colorFilter.length) {
       const set = new Set((d.colors || []).map((c) => (c || "").toLowerCase()));
@@ -62,6 +65,28 @@ export default function SpiceHistory() {
             Every Standard-legal brew you've generated, saved automatically.
           </p>
         </motion.div>
+
+        {/* Brews vs Meta toggle */}
+        <div className="flex justify-center mb-6">
+          <div className="inline-flex bg-card border border-border rounded-lg p-1">
+            <Button
+              variant={view === "spice" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setView("spice")}
+              className="font-body"
+            >
+              Brews
+            </Button>
+            <Button
+              variant={view === "meta" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setView("meta")}
+              className="font-body"
+            >
+              Meta decks
+            </Button>
+          </div>
+        </div>
 
         {/* Filters */}
         <div className="bg-card rounded-xl border border-border p-4 sm:p-5 mb-8 space-y-4">
@@ -94,8 +119,10 @@ export default function SpiceHistory() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground font-body">
-            {decks.length === 0
-              ? "No saved decks yet. Generate one on the Daily Spice Rack!"
+            {view === "meta"
+              ? "No saved meta decks yet. Save one from the Meta Decks page!"
+              : decks.filter((d) => d.source !== "meta").length === 0
+              ? "No saved brews yet. Generate one on the Daily Spice Rack!"
               : "No decks match your filters."}
           </div>
         ) : (

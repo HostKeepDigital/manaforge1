@@ -377,6 +377,7 @@ Use only real card names that are currently legal in Standard (or basic lands).`
           await base44.entities.SavedDeck.create({
             ...toSavedDeck(data, colors),
             verified_legal: true,
+            source: "spice",
           });
           toast.success("Verified Standard-legal brew saved to Spice History!");
         } catch (saveErr) {
