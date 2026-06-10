@@ -145,3 +145,55 @@ export function savedDeckToDisplay(saved) {
     },
   };
 }
+
+// ---- Standard card-pool grounding -------------------------------------------
+// Pull a candidate pool of REAL, currently Standard-legal cards in the chosen
+// colors from Scryfall, so the builder SELECTS from cards that exist and are
+// legal right now — instead of recalling them from (stale) training data.
+// Fails soft: if Scryfall is unreachable, generation still runs, just ungrounded.
+// colors: array like ["W","U"]. Empty or all five => no color filter.
+export async function fetchStandardCardPool(colors = [], limit = 200) {
+  const colorStr = (colors || []).join("").toLowerCase();
+  // f:standard   -> legal in Standard today
+  // id<=wu       -> color identity fits inside the chosen colors (incl. colorless)
+  // order=edhrec -> surfaces the most-played, recognizable cards first
+  const q =
+    colorStr.length > 0 && colorStr.length < 5
+      ? `f:standard id<=${colorStr}`
+      : `f:standard`;
+  const url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(
+    q
+  )}&order=edhrec&unique=cards`;
+
+  const pool = [];
+  let next = url;
+  try {
+    while (next && pool.length < limit) {
+      const res = await fetch(next);
+      if (!res.ok) break;
+      const json = await res.json();
+      for (const c of json.data || []) {
+        if ((c.type_line || "").includes("Basic Land")) continue; // model adds basics itself
+        pool.push({
+          name: c.name,
+          mana_cost: c.mana_cost || c.card_faces?.[0]?.mana_cost || "",
+          type: (c.type_line || "").split(" — ")[0],
+        });
+        if (pool.length >= limit) break;
+      }
+      next = json.has_more ? json.next_page : null;
+      if (next) await new Promise((r) => setTimeout(r, 120)); // Scryfall courtesy delay
+    }
+  } catch (_e) {
+    // swallow — return whatever we collected (possibly empty)
+  }
+  return pool;
+}
+
+// Compact one-line-per-card formatting for injection into a prompt.
+export function formatCardPool(pool = []) {
+  if (!pool.length) return "";
+  return pool
+    .map((c) => `${c.name}${c.mana_cost ? " " + c.mana_cost : ""} [${c.type}]`)
+    .join("\n");
+}
