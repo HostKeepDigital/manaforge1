@@ -39,8 +39,16 @@ export default function SpinTheWheel() {
   // ---- Round 1: number of colors ----
   const onCountResult = (i) => {
     setSpinning(false);
-    setColorCount(i + 1); // segments are 1..5
-    setTimeout(() => setRound(2), 900);
+    const count = i + 1; // segments are 1..5
+    setColorCount(count);
+    if (count === 5) {
+      // All five colors are forced — skip Round 2 entirely.
+      setPickedColors(COLORS);
+      setRemaining([]);
+      setTimeout(() => setRound(3), 900);
+    } else {
+      setTimeout(() => setRound(2), 900);
+    }
   };
 
   // ---- Round 2: pick that many unique colors ----
